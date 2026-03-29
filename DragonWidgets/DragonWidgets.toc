@@ -1,0 +1,27 @@
+## Interface: 110207, 120001, 120000
+## Interface-BCC: 20505
+## Interface-Cata: 40402
+## Interface-Mists: 50503
+## Title: DragonWidgets
+## Author: Xerrion
+## Notes: Shared event-driven widget library for Dragon* addon Options panels
+## Version: @project-version@
+## LoadOnDemand: 1
+
+DragonWidgets.lua
+LayoutConstants.lua
+Widgets\WidgetConstants.lua
+Widgets\Panel.lua
+Widgets\ScrollFrame.lua
+Widgets\TabGroup.lua
+Widgets\Header.lua
+Widgets\Description.lua
+Widgets\Section.lua
+Widgets\Toggle.lua
+Widgets\Slider.lua
+Widgets\Dropdown.lua
+Widgets\ColorPicker.lua
+Widgets\TextInput.lua
+Widgets\Button.lua
+Widgets\ItemSlot.lua
+Widgets\ItemList.lua

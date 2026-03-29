@@ -1,0 +1,18 @@
+package-as: DragonWidgets
+enable-toc-creation: yes
+manual-changelog: .release/CHANGELOG.md
+
+move-folders:
+  DragonWidgets/DragonWidgets: DragonWidgets
+
+ignore:
+  - ".git*"
+  - .luacheckrc
+  - .release
+  - "*.md"
+  - "*.png"
+  - release-please-config.json
+  - .release-please-manifest.json
+  - "*spec/"
+  - "*scripts/"
+  - "*Assets/"
