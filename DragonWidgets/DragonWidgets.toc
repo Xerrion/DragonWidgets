@@ -6,7 +6,6 @@
 ## Author: Xerrion
 ## Notes: Shared event-driven widget library for Dragon* addon Options panels
 ## Version: @project-version@
-## LoadOnDemand: 1
 
 DragonWidgets.lua
 LayoutConstants.lua
