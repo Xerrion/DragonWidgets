@@ -137,17 +137,17 @@ function ns.Widgets.CreateToggle(parent, opts)
     end
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         return checked
     end
 
-    function frame:SetValue(v)
+    function frame.SetValue(_, v)
         checked = not not v
         box._checkMark:SetShown(checked)
         UpdateCheckBorder(box, checked)
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         if disabled then
             label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
@@ -158,7 +158,7 @@ function ns.Widgets.CreateToggle(parent, opts)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         if opts.get then
             checked = not not opts.get()
             box._checkMark:SetShown(checked)

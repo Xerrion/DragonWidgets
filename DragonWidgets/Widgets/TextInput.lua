@@ -103,15 +103,15 @@ function ns.Widgets.CreateTextInput(parent, opts)
     end
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         return editBox:GetText()
     end
 
-    function frame:SetValue(v)
+    function frame.SetValue(_, v)
         editBox:SetText(v or "")
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         if disabled then
             label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
@@ -122,7 +122,7 @@ function ns.Widgets.CreateTextInput(parent, opts)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         if opts.get then
             editBox:SetText(opts.get() or "")
         end
