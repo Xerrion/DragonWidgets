@@ -421,18 +421,18 @@ function ns.Widgets.CreateDropdown(parent, opts)
     UpdateSelectedPreview(frame, opts, initKey)
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         return opts.get and opts.get() or nil
     end
 
-    function frame:SetValue(v)
+    function frame.SetValue(_, v)
         if opts.set then opts.set(v) end
         local vals = ResolveValues(opts)
         selectedText:SetText(FindDisplayText(vals, v))
         UpdateSelectedPreview(frame, opts, v)
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         button:SetBackdropColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], BG_COLOR[4])
         if disabled then
@@ -449,7 +449,7 @@ function ns.Widgets.CreateDropdown(parent, opts)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         local vals = ResolveValues(opts)
         local key = opts.get and opts.get() or nil
         selectedText:SetText(FindDisplayText(vals, key))

@@ -4,6 +4,7 @@ max_line_length = 120
 
 globals = {
     "DragonWidgetsNS",
+    "ColorPickerFrame",
 }
 
 read_globals = {
@@ -12,7 +13,6 @@ read_globals = {
     "UIParent",
     "UISpecialFrames",
     "GameTooltip",
-    "ColorPickerFrame",
     "ShowUIPanel",
     "PlaySound",
     "SOUNDKIT",

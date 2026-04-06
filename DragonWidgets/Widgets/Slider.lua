@@ -271,11 +271,11 @@ function ns.Widgets.CreateSlider(parent, opts)
     UpdateFillWidth(currentValue)
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         return currentValue
     end
 
-    function frame:SetValue(v)
+    function frame.SetValue(_, v)
         local clamped = Clamp(RoundToStep(v, step), minVal, maxVal)
         currentValue = clamped
         isInternal = true
@@ -285,7 +285,7 @@ function ns.Widgets.CreateSlider(parent, opts)
         UpdateFillWidth(clamped)
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         slider:EnableMouse(not disabled)
         editBox:EnableMouse(not disabled)
@@ -300,7 +300,7 @@ function ns.Widgets.CreateSlider(parent, opts)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         if opts.get then
             local v = opts.get() or minVal
             local clamped = Clamp(RoundToStep(v, step), minVal, maxVal)

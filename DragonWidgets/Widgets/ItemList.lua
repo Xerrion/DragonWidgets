@@ -272,7 +272,7 @@ function ns.Widgets.CreateItemList(parent, opts)
     end
 
     -- Public API: GetValue / SetValue / SetDisabled for consistency
-    function frame:GetValue()
+    function frame.GetValue(_)
         return opts.getItems and opts.getItems() or {}
     end
 

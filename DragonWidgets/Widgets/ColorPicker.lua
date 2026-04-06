@@ -13,7 +13,6 @@ local WC = ns.WidgetConstants
 -------------------------------------------------------------------------------
 
 local CreateFrame = CreateFrame
-local ColorPickerFrame = ColorPickerFrame
 local ShowUIPanel = ShowUIPanel
 
 -------------------------------------------------------------------------------
@@ -179,18 +178,18 @@ function ns.Widgets.CreateColorPicker(parent, opts)
     end)
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         if opts.get then return opts.get() end
         return initR, initG, initB, initA
     end
 
-    function frame:SetValue(r, g, b, a)
+    function frame.SetValue(_, r, g, b, a)
         a = a or 1
         UpdateSwatch(swatch, r, g, b, a)
         if opts.set then opts.set(r, g, b, a) end
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         if disabled then
             label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
@@ -201,7 +200,7 @@ function ns.Widgets.CreateColorPicker(parent, opts)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         if not opts.get then return end
         local r, g, b, a = opts.get()
         UpdateSwatch(swatch, r, g, b, a or 1)
