@@ -142,16 +142,26 @@ function ns.Widgets.CreateToggle(parent, opts)
     end
 
     -- Public API
+
+    --- Returns the current checked state of the toggle.
+    ---@return boolean checked Whether the toggle is currently checked
     function frame.GetValue(_)
         return checked
     end
 
+    --- Sets the checked state without firing change events.
+    ---@param _ any Self reference (unused, dot-style call)
+    ---@param v boolean The new checked state (coerced to boolean)
     function frame.SetValue(_, v)
         checked = not not v
         box._checkMark:SetShown(checked)
         UpdateCheckBorder(box, checked)
     end
 
+    --- Enables or disables the toggle widget.
+    --- When disabled, the label is dimmed and clicks are ignored.
+    ---@param _ any Self reference (unused, dot-style call)
+    ---@param state boolean True to disable, false to enable
     function frame.SetDisabled(_, state)
         disabled = state
         box:SetBackdropColor(WC.WIDGET_BG[1], WC.WIDGET_BG[2], WC.WIDGET_BG[3], WC.WIDGET_BG[4])
@@ -164,6 +174,8 @@ function ns.Widgets.CreateToggle(parent, opts)
         end
     end
 
+    --- Refreshes the visual state by re-reading from opts.get().
+    --- No-op if opts.get was not provided at creation time.
     function frame.Refresh(_)
         if opts.get then
             checked = not not opts.get()
