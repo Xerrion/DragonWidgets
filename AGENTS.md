@@ -64,12 +64,12 @@ All widgets fire events via `ns.Fire(event, payload)`. Consumers subscribe with 
 
 All widgets return a `frame` with a public API:
 
-| Method            | All widgets | Description                          |
-| ----------------- | ----------- | ------------------------------------ |
-| `frame:GetValue()`  | Toggle, Slider, ColorPicker, Dropdown | Returns current value |
-| `frame:SetValue(v)` | Toggle, Slider, ColorPicker, Dropdown | Sets value without firing event |
-| `frame:SetDisabled(bool)` | All | Enable/disable the widget      |
-| `frame:Refresh()`   | All         | Re-reads from `opts.get()`           |
+| Method            | Implemented by | Description                          |
+| ----------------- | -------------- | ------------------------------------ |
+| `frame:GetValue()`  | Toggle, Slider, ColorPicker, Dropdown, TextInput, ItemList | Returns current value |
+| `frame:SetValue(v)` | Toggle, Slider, ColorPicker, Dropdown, TextInput, ItemList | Sets value without firing event |
+| `frame:SetDisabled(bool)` | Toggle, Slider, ColorPicker, Dropdown, TextInput, ItemList | Enable/disable the widget |
+| `frame:Refresh()`   | Toggle, Slider, ColorPicker, Dropdown, TextInput, ItemList | Re-reads from `opts.get()` |
 
 ---
 
@@ -101,6 +101,6 @@ When adding a new widget file, it must be added to every consumer TOC that needs
 
 1. **Child Frame mouse interception** - Child `Frame` widgets intercept mouse events from their parent. If a visual element is a `Frame` (not a texture), it must either have its own `OnMouseUp` handler or call `EnableMouse(false)` to pass clicks through to the parent.
 2. **FontString cannot receive mouse events** - Labels are `FontString` regions; they cannot register click scripts. Click areas must be covered by the parent `Frame`.
-3. **No Ace3** - Do not add Ace3 or any external library. This library must remain dependency-free.
+3. **No Ace3** - Do not add Ace3 or any external library. No hard library dependencies. LibSharedMedia-3.0 is soft-loaded (`LibStub("LibSharedMedia-3.0", true)`) and only used for media-type dropdowns; absent LSM falls back to empty lists.
 4. **Consumer TOC maintenance** - Adding a new `.lua` file requires updating every consumer `_Options` TOC manually.
 5. **`DragonWidgetsNS` is the only global** - Never introduce additional globals.
