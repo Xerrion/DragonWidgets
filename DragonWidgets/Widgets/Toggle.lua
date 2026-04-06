@@ -96,23 +96,12 @@ function ns.Widgets.CreateToggle(parent, opts)
     -- Tooltip
     frame._tooltipText = opts.tooltip
 
-    -- Hover state on checkbox
-    box:SetScript("OnEnter", function()
-        if disabled then return end
-        box:SetBackdropColor(
-            WC.WIDGET_BG_HOVER[1], WC.WIDGET_BG_HOVER[2],
-            WC.WIDGET_BG_HOVER[3], WC.WIDGET_BG_HOVER[4]
-        )
-    end)
-    box:SetScript("OnLeave", function()
-        box:SetBackdropColor(WC.WIDGET_BG[1], WC.WIDGET_BG[2], WC.WIDGET_BG[3], WC.WIDGET_BG[4])
-    end)
+    -- Disable mouse on box so clicks pass through to the parent frame
+    box:EnableMouse(false)
 
-    -- Click handler on the entire frame
-    frame:EnableMouse(true)
-    frame:SetScript("OnEnter", WC.ShowTooltip)
-    frame:SetScript("OnLeave", WC.HideTooltip)
-    frame:SetScript("OnMouseUp", function()
+    -- Toggle logic (sole handler lives on frame)
+    local function doToggle(_, button)
+        if button ~= "LeftButton" then return end
         if disabled then return end
         checked = not checked
         box._checkMark:SetShown(checked)
@@ -120,7 +109,23 @@ function ns.Widgets.CreateToggle(parent, opts)
         if opts.set then opts.set(checked) end
         ns.Fire("OnWidgetChanged", { widgetType = "Toggle", key = opts.key, value = checked })
         if opts.isAppearance then ns.Fire("OnAppearanceChanged", {}) end
+    end
+
+    -- Frame handles tooltip, hover highlight, and click
+    frame:EnableMouse(true)
+    frame:SetScript("OnEnter", function(self)
+        WC.ShowTooltip(self)
+        if disabled then return end
+        box:SetBackdropColor(
+            WC.WIDGET_BG_HOVER[1], WC.WIDGET_BG_HOVER[2],
+            WC.WIDGET_BG_HOVER[3], WC.WIDGET_BG_HOVER[4]
+        )
     end)
+    frame:SetScript("OnLeave", function()
+        WC.HideTooltip()
+        box:SetBackdropColor(WC.WIDGET_BG[1], WC.WIDGET_BG[2], WC.WIDGET_BG[3], WC.WIDGET_BG[4])
+    end)
+    frame:SetScript("OnMouseUp", doToggle)
 
     -- Initialize from opts.get
     if opts.get then
@@ -149,6 +154,7 @@ function ns.Widgets.CreateToggle(parent, opts)
 
     function frame.SetDisabled(_, state)
         disabled = state
+        box:SetBackdropColor(WC.WIDGET_BG[1], WC.WIDGET_BG[2], WC.WIDGET_BG[3], WC.WIDGET_BG[4])
         if disabled then
             label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
             box:SetAlpha(0.5)
