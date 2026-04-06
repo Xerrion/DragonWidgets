@@ -71,9 +71,9 @@ All widgets fire events via `ns.Fire(event, payload)`. Consumers subscribe with 
 | Event              | Fired by             | Payload                                      |
 | ------------------ | -------------------- | -------------------------------------------- |
 | `OnWidgetChanged`    | All value widgets    | `{ widgetType, key, value }`                   |
-| `OnAppearanceChanged`| Toggle (isAppearance)| `{}`                                         |
-| `OnPanelOpened`      | Panel factory        | `{ panelName }`                               |
-| `OnPanelClosed`      | Panel factory        | `{ panelName }`                               |
+| `OnAppearanceChanged`| Any widget with `opts.isAppearance = true`; also LayoutConstants | `{}`                                         |
+| `OnPanelOpened`      | Panel factory        | `{}`                                          |
+| `OnPanelClosed`      | Panel factory        | `{}`                                          |
 
 ### Widget API Contract
 
