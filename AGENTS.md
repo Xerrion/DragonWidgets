@@ -2,7 +2,7 @@
 
 Project-specific guidelines for DragonWidgets. See the parent `../AGENTS.md` for general WoW addon development rules.
 
-DragonWidgets is a shared event-driven widget library for Dragon* addon options panels. It is embedded as a git submodule into `DragonLoot_Options` and `DragonToast_Options` — it is not a standalone addon in production. Its own TOC only matters during local standalone development.
+DragonWidgets is a shared event-driven widget library for Dragon* addon options panels. It is embedded as a git submodule into `DragonLoot_Options` and `DragonToast_Options` - it is not a standalone addon in production. Its own TOC only matters during local standalone development.
 
 **GitHub**: https://github.com/Xerrion/DragonWidgets
 
@@ -10,7 +10,7 @@ DragonWidgets is a shared event-driven widget library for Dragon* addon options 
 
 ## Target Versions
 
-Retail, MoP Classic, TBC Anniversary, Cata Classic — all versions. No version-specific code in this library; it must work everywhere.
+Retail, MoP Classic, TBC Anniversary, Cata Classic - all versions. No version-specific code in this library; it must work everywhere.
 
 ---
 
