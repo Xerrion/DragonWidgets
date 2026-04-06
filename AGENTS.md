@@ -8,21 +8,6 @@ DragonWidgets is a shared event-driven widget library for Dragon* addon options 
 
 ---
 
-## Skills
-
-Every `coder` delegation on this project must specify which skills to load. Use this matrix:
-
-| Skill                   | When to load                                                        |
-| ----------------------- | ------------------------------------------------------------------- |
-| `code-philosophy`         | All code changes (always)                                           |
-| `architecture-philosophy` | New widgets, file structure, namespace design, layer boundaries     |
-| `wow-lua-patterns`        | All WoW addon Lua (always)                                          |
-| `wow-frame-api`           | Any UI frame creation, widget layout, anchoring, backdrop, textures |
-
-Use the `wow-addon` agent (not `coder`) for WoW API research before implementation when API correctness is uncertain.
-
----
-
 ## Target Versions
 
 Retail, MoP Classic, TBC Anniversary, Cata Classic — all versions. No version-specific code in this library; it must work everywhere.
@@ -31,7 +16,7 @@ Retail, MoP Classic, TBC Anniversary, Cata Classic — all versions. No version-
 
 ## Architecture
 
-DragonWidgets is a pure widget library. No Ace3, no SavedVariables, no slash commands. One global: `DragonWidgetsNS`.
+DragonWidgets is a pure widget library. No Ace3, no SavedVariables, no slash commands. One global: `DragonWidgetsNS`. Use the `wow-addon` agent for WoW API research before implementation when API correctness is uncertain.
 
 ### File Map
 
@@ -105,41 +90,10 @@ When adding a new widget file, it must be added to every consumer TOC that needs
 
 ---
 
-## Build, Lint & Test
+## GitHub Projects
 
-```bash
-# Lint
-cd /mnt/Develop/wow-addons/DragonWidgets
-luacheck .
-```
-
-No automated tests currently. See issue #4 for the busted test framework plan.
-
----
-
-## GitHub Workflow
-
-### Issues
-- Title format: `[Bug]: description` / `[Feature]: description`
-- Always apply: one `C-*` (category), one `A-*` (area), one `D-*` (difficulty), one `P-*` (platform) label
-- Use the repo's GitHub issue templates (bug-report or feature-request)
-- Add new issues to the appropriate project and set status to **"To triage"**
-
-### GitHub Projects
 - **DragonWidgets - Bugs**: project #8 (`C-Bug` issues)
 - **DragonWidgets - Feature Requests**: project #9 (`C-Feature` issues)
-- Status columns: **To triage -> Backlog -> Ready -> In progress -> In review -> Done**
-
-### Branching and PRs
-- Branch from `master`: `feat/<number>-short-desc`, `fix/<number>-short-desc`, `refactor/<number>-short-desc`
-- One PR per issue; reference `Closes #N` in the PR body
-- Squash merge only: `gh pr merge <N> --squash --delete-branch`
-- **Never merge release-please PRs** (`chore(master): release X.Y.Z`) - the repo owner merges these manually
-- Wait for CodeRabbit AI review before merging; reply to comments with `@coderabbitai` in the specific thread
-
-### Commits
-- Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
-- Reference issue numbers: `fix: toggle box area now registers clicks (#2)`
 
 ---
 
