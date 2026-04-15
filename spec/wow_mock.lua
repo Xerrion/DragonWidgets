@@ -113,6 +113,13 @@ local function CreateMockFontString()
         return #self._text * 7
     end
 
+    function fs:GetStringHeight()
+        return self._fontSize or 12
+    end
+
+    function fs.SetNonSpaceWrap() end
+    function fs.ClearAllPoints() end
+
     return fs
 end
 
@@ -206,6 +213,15 @@ local function CreateMockFrame()
     function frame.SetFrameStrata() end
     function frame.SetFrameLevel() end
     function frame.RegisterForDrag() end
+    function frame.SetAllPoints() end
+    function frame.SetScrollChild() end
+    function frame.SetVerticalScroll() end
+    function frame.EnableMouseWheel() end
+    function frame.SetNormalTexture() end
+    function frame.HookScript() end
+    function frame.SetFont() end
+    function frame.SetJustifyH() end
+    function frame.SetTextColor() end
 
     function frame:CreateTexture() -- luacheck: ignore 212/self
         return CreateMockTexture()
@@ -219,6 +235,38 @@ local function CreateMockFrame()
         self._scripts[event] = handler
     end
 
+    -- EditBox-specific methods (needed by Slider, TextInput)
+    function frame:SetAutoFocus() end
+    function frame:SetMaxLetters() end
+    function frame:SetTextInsets() end
+    function frame:ClearFocus() end
+    function frame:GetText()
+        return self._text or ""
+    end
+    function frame:SetText(text)
+        self._text = text or ""
+    end
+
+    -- Slider-specific methods
+    function frame:SetMinMaxValues(min, max)
+        self._min = min
+        self._max = max
+    end
+    function frame:SetValueStep() end
+    function frame:SetObeyStepOnDrag() end
+    function frame:SetOrientation() end
+    function frame:SetThumbTexture() end
+    function frame:SetValue(v)
+        self._value = v
+        -- Fire OnValueChanged script if registered
+        if self._scripts and self._scripts["OnValueChanged"] then
+            self._scripts["OnValueChanged"](self, v)
+        end
+    end
+    function frame:GetValue()
+        return self._value or 0
+    end
+
     return frame
 end
 
@@ -227,6 +275,40 @@ function CreateFrame(_, _, _, _)
 end
 
 UIParent = CreateMockFrame()
+
+-- ColorPickerFrame stub (needed by ColorPicker tests)
+ColorPickerFrame = {
+    _r = 1, _g = 1, _b = 1, _a = 1,
+    SetupColorPickerAndShow = function(self, info)
+        -- Retail API: info.r, info.g, info.b, info.opacity, info.hasOpacity, info.swatchFunc, info.cancelFunc
+        if info then
+            self._r = info.r or 1
+            self._g = info.g or 1
+            self._b = info.b or 1
+            self._a = info.opacity or 1
+            -- Store callbacks for test invocation
+            self._swatchFunc = info.swatchFunc
+            self._cancelFunc = info.cancelFunc
+        end
+    end,
+    GetColorRGB = function(self)
+        return self._r, self._g, self._b
+    end,
+    GetColorAlpha = function(self)
+        return self._a
+    end,
+    SetColorRGB = function(self, r, g, b)
+        self._r = r
+        self._g = g
+        self._b = b
+    end,
+    SetColorAlpha = function(self, a)
+        self._a = a
+    end,
+}
+
+-- ShowUIPanel stub (needed by ColorPicker classic API path)
+function ShowUIPanel() end
 
 -- luacheck: pop
 
