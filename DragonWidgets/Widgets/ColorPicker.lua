@@ -232,5 +232,11 @@ function ns.Widgets.CreateColorPicker(parent, opts)
     frame._border = border
     frame.order = opts.order
 
+    function frame:SetCompactLayout(_width)
+        ns.LayoutConstants.PrepareCompactRow(self, label, SWATCH_SIZE + 2)
+        border:ClearAllPoints()
+        border:SetPoint("RIGHT", self, "RIGHT", 0, 0)
+    end
+
     return frame
 end

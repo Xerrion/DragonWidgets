@@ -52,6 +52,7 @@ function ns.Widgets.CreateDescription(parent, text)
     fontString:SetText(text)
 
     frame._fontString = fontString
+    frame._layoutRole = "description"
 
     -- Recalculate height when parent width changes
     frame:SetScript("OnSizeChanged", function()

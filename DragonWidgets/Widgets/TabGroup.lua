@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- TabGroup.lua
--- Horizontal tab bar with lazy content creation and scroll frames
+-- Horizontal tabs or sidebar navigation with lazy, scrollable settings pages
 --
 -- Supported versions: Retail, MoP Classic, TBC Anniversary, Cata, Classic
 -------------------------------------------------------------------------------
@@ -53,9 +53,9 @@ end
 -- Create a single tab button
 -------------------------------------------------------------------------------
 
-local function CreateTabButton(parent, label, tabGroup)
+local function CreateTabButton(parent, label, tabGroup, sidebar)
     local btn = CreateFrame("Button", nil, parent)
-    btn:SetHeight(TAB_HEIGHT)
+    btn:SetHeight(sidebar and 34 or TAB_HEIGHT)
 
     -- Background
     local bg = btn:CreateTexture(nil, "BACKGROUND")
@@ -66,7 +66,7 @@ local function CreateTabButton(parent, label, tabGroup)
     -- Text
     local text = btn:CreateFontString(nil, "OVERLAY")
     text:SetFont(WC.FONT_PATH, WC.FONT_SIZE, "")
-    text:SetJustifyH("CENTER")
+    text:SetJustifyH(sidebar and "LEFT" or "CENTER")
     text:SetWordWrap(false)
     text:SetText(label)
     text:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
@@ -92,9 +92,15 @@ local function CreateTabButton(parent, label, tabGroup)
 
     -- Accent underline keeps selection visible independently of text color.
     local activeBar = btn:CreateTexture(nil, "ARTWORK")
-    activeBar:SetHeight(2)
-    activeBar:SetPoint("BOTTOMLEFT", btn, "BOTTOMLEFT", 0, 0)
-    activeBar:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 0, 0)
+    if sidebar then
+        activeBar:SetWidth(2)
+        activeBar:SetPoint("TOPLEFT", btn, "TOPLEFT", 0, -5)
+        activeBar:SetPoint("BOTTOMLEFT", btn, "BOTTOMLEFT", 0, 5)
+    else
+        activeBar:SetHeight(2)
+        activeBar:SetPoint("BOTTOMLEFT", btn, "BOTTOMLEFT", 0, 0)
+        activeBar:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 0, 0)
+    end
     activeBar:SetColorTexture(WC.ACCENT_COLOR[1], WC.ACCENT_COLOR[2], WC.ACCENT_COLOR[3], 1)
     activeBar:Hide()
     btn._activeBar = activeBar
@@ -124,19 +130,53 @@ end
 -- Factory: CreateTabGroup
 -------------------------------------------------------------------------------
 
-function ns.Widgets.CreateTabGroup(parent, tabs)
+function ns.Widgets.CreateTabGroup(parent, tabs, opts)
+    opts = opts or {}
+    local sidebar = opts.navigation == "sidebar"
     local tabGroup = CreateFrame("Frame", nil, parent)
 
-    -- Tab bar across the top
+    -- Navigation across the top or down the left side
     local tabBar = CreateFrame("Frame", nil, tabGroup)
-    tabBar:SetHeight(TAB_HEIGHT)
     tabBar:SetPoint("TOPLEFT", tabGroup, "TOPLEFT", 0, 0)
-    tabBar:SetPoint("TOPRIGHT", tabGroup, "TOPRIGHT", 0, 0)
+    if sidebar then
+        tabBar:SetWidth(opts.sidebarWidth or 160)
+        tabBar:SetPoint("BOTTOMLEFT", tabGroup, "BOTTOMLEFT", 0, 0)
+    else
+        tabBar:SetHeight(TAB_HEIGHT)
+        tabBar:SetPoint("TOPRIGHT", tabGroup, "TOPRIGHT", 0, 0)
+    end
 
-    -- Content area below tab bar
+    -- Content area beside navigation
     local contentArea = CreateFrame("Frame", nil, tabGroup)
-    contentArea:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 0, 0)
+    if sidebar then
+        contentArea:SetPoint("TOPLEFT", tabBar, "TOPRIGHT", 12, 0)
+    else
+        contentArea:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 0, 0)
+    end
     contentArea:SetPoint("BOTTOMRIGHT", tabGroup, "BOTTOMRIGHT", 0, 0)
+
+    -- The title and preview stay outside the scrolling settings viewport.
+    local contentTop = 1
+    local pageTitle
+    if sidebar then
+        pageTitle = contentArea:CreateFontString(nil, "OVERLAY")
+        pageTitle:SetFont(WC.FONT_PATH, WC.FONT_SIZE_TITLE, "")
+        pageTitle:SetTextColor(WC.TEXT_COLOR[1], WC.TEXT_COLOR[2], WC.TEXT_COLOR[3])
+        pageTitle:SetPoint("TOPLEFT", contentArea, "TOPLEFT", 10, -8)
+        pageTitle:SetPoint("TOPRIGHT", contentArea, "TOPRIGHT", -10, -8)
+        pageTitle:SetJustifyH("LEFT")
+        pageTitle:SetWordWrap(false)
+        contentTop = 34
+    end
+    if opts.previewHeight then
+        local previewHost = CreateFrame("Frame", nil, contentArea, "BackdropTemplate")
+        previewHost:SetPoint("TOPLEFT", contentArea, "TOPLEFT", 10, -contentTop)
+        previewHost:SetPoint("TOPRIGHT", contentArea, "TOPRIGHT", -10, -contentTop)
+        previewHost:SetHeight(opts.previewHeight)
+        WC.ApplyBackdrop(previewHost, WC.INPUT_BG, WC.SECTION_BORDER)
+        tabGroup.previewHost = previewHost
+        contentTop = contentTop + opts.previewHeight + 12
+    end
 
     -- Separator line below tab bar
     local separator = contentArea:CreateTexture(nil, "ARTWORK")
@@ -151,17 +191,26 @@ function ns.Widgets.CreateTabGroup(parent, tabs)
     -- State
     local tabButtons = {}
     local contentFrames = {}
+    local definitions = {}
     local selectedTab = nil
+    tabGroup._tabButtons = tabButtons
+    tabGroup._contentFrames = contentFrames
 
     -- Create tab buttons
     local xOffset = 0
     for i, tabDef in ipairs(tabs) do
-        local btn = CreateTabButton(tabBar, tabDef.label, tabGroup)
+        local btn = CreateTabButton(tabBar, tabDef.label, tabGroup, sidebar)
+        definitions[tabDef.id] = tabDef
         btn._tabId = tabDef.id
         btn._baseWidth = btn:GetWidth()
         btn._tabOrder = i
-        btn:SetPoint("TOPLEFT", tabBar, "TOPLEFT", xOffset, 0)
-        xOffset = xOffset + btn._baseWidth + 1
+        if sidebar then
+            btn:SetPoint("TOPLEFT", tabBar, "TOPLEFT", 0, -(i - 1) * 38 - 4)
+            btn:SetPoint("TOPRIGHT", tabBar, "TOPRIGHT", 0, -(i - 1) * 38 - 4)
+        else
+            btn:SetPoint("TOPLEFT", tabBar, "TOPLEFT", xOffset, 0)
+            xOffset = xOffset + btn._baseWidth + 1
+        end
         tabButtons[tabDef.id] = btn
     end
 
@@ -204,11 +253,21 @@ function ns.Widgets.CreateTabGroup(parent, tabs)
         end
     end
 
-    tabBar:SetScript("OnSizeChanged", ResizeTabs)
+    if not sidebar then tabBar:SetScript("OnSizeChanged", ResizeTabs) end
+
+    function tabGroup:RefreshSelected()
+        local definition = definitions[selectedTab]
+        local content = contentFrames[selectedTab]
+        if content and opts.settingsLayout then
+            ns.LayoutConstants.RefreshSettingsLayout(content.scrollChild)
+        end
+        if definition and definition.refreshFunc then definition.refreshFunc() end
+        if content then content:UpdateScrollRange() end
+    end
 
     -- SelectTab: switch to a tab, lazy-create content on first visit
     function tabGroup.SelectTab(_, id)
-        if selectedTab == id then return end
+        if selectedTab == id or not definitions[id] then return end
 
         -- Deselect previous
         if selectedTab and tabButtons[selectedTab] then
@@ -219,6 +278,7 @@ function ns.Widgets.CreateTabGroup(parent, tabs)
         end
 
         selectedTab = id
+        if pageTitle then pageTitle:SetText(definitions[id].label) end
 
         -- Activate new tab button
         if tabButtons[id] then
@@ -228,8 +288,10 @@ function ns.Widgets.CreateTabGroup(parent, tabs)
         -- Lazy-create content frame on first visit
         if not contentFrames[id] then
             local scrollWrapper = ns.Widgets.CreateScrollFrame(contentArea)
-            scrollWrapper:SetPoint("TOPLEFT", contentArea, "TOPLEFT", 0, -1)
+            scrollWrapper:SetPoint("TOPLEFT", contentArea, "TOPLEFT", 0, -contentTop)
             scrollWrapper:SetPoint("BOTTOMRIGHT", contentArea, "BOTTOMRIGHT", 0, 0)
+
+            if opts.settingsLayout then ns.LayoutConstants.BeginSettingsLayout(scrollWrapper.scrollChild) end
 
             -- Find the tab definition and call its createFunc
             for _, tabDef in ipairs(tabs) do
@@ -239,15 +301,30 @@ function ns.Widgets.CreateTabGroup(parent, tabs)
                 end
             end
 
+            if opts.settingsLayout then ns.LayoutConstants.EndSettingsLayout(scrollWrapper.scrollChild) end
+
             contentFrames[id] = scrollWrapper
         end
 
         -- Show the content
         contentFrames[id]:Show()
+        tabGroup:RefreshSelected()
+        if opts.onSelect then opts.onSelect(id) end
     end
 
     function tabGroup.GetSelectedTab(_)
         return selectedTab
+    end
+
+    if tabGroup.previewHost then
+        tabGroup.previewHost:EnableMouseWheel(true)
+        tabGroup.previewHost:SetScript("OnMouseWheel", function(_, delta)
+            local content = contentFrames[selectedTab]
+            if content then
+                local bar = content._scrollBar
+                bar:SetValue(bar:GetValue() - delta * 20)
+            end
+        end)
     end
 
     -- Auto-select first tab if available

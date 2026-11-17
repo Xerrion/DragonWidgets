@@ -188,5 +188,11 @@ function ns.Widgets.CreateToggle(parent, opts)
     frame._label = label
     frame.order = opts.order
 
+    function frame:SetCompactLayout(_width)
+        ns.LayoutConstants.PrepareCompactRow(self, label, BOX_SIZE)
+        box:ClearAllPoints()
+        box:SetPoint("RIGHT", self, "RIGHT", 0, 0)
+    end
+
     return frame
 end

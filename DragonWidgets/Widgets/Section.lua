@@ -67,6 +67,13 @@ function ns.Widgets.CreateSection(parent, headerText)
     frame._headerBg = headerBg
     frame._headerLabel = headerLabel
     frame.content = content
+    frame._layoutRole = "section"
+    frame._layoutContentInset = PADDING
+    if parent._settingsLayout and parent._settingsLayout.collecting then
+        local layout = ns.LayoutConstants.BeginSettingsLayout(content)
+        layout.ownerSection = frame
+        layout.root = parent._settingsLayout.root
+    end
 
     -- Public API: size the section after children are placed
     function frame:SetContentHeight(h)

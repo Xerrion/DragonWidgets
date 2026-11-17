@@ -122,5 +122,10 @@ function ns.Widgets.CreateButton(parent, opts)
 
     btn.order = opts.order
 
+    function btn:SetCompactLayout(availableWidth)
+        self:SetWidth(math.min(width, availableWidth))
+        self:SetHeight(28)
+    end
+
     return btn
 end
