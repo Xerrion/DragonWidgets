@@ -25,9 +25,7 @@ local GameTooltip = GameTooltip
 -------------------------------------------------------------------------------
 
 local DEFAULT_SIZE = 36
-local WHITE8x8 = WC.WHITE8x8
-local EMPTY_ICON = WC.EMPTY_ICON
-local EMPTY_BORDER_COLOR = { 0.4, 0.4, 0.4, 1 }
+local EMPTY_BORDER_COLOR = WC.CONTROL_BORDER
 local MAX_RETRIES = 3
 local RETRY_DELAY = 0.5
 
@@ -57,6 +55,7 @@ local function QueryItemInfo(slot, itemID, attempt)
     if itemName and itemTexture then
         slot._icon:SetTexture(itemTexture)
         slot._icon:Show()
+        slot._emptyMark:Hide()
         slot._itemQuality = itemQuality
         UpdateSlotBorder(slot, itemQuality)
         return
@@ -118,19 +117,22 @@ function ns.Widgets.CreateItemSlot(parent, opts)
 
     -- Border frame
     frame._border = frame
-    frame:SetBackdrop({ bgFile = WHITE8x8, edgeFile = WHITE8x8, edgeSize = 1 })
-    frame:SetBackdropColor(0.05, 0.05, 0.05, 0.8)
-    frame:SetBackdropBorderColor(
-        EMPTY_BORDER_COLOR[1], EMPTY_BORDER_COLOR[2],
-        EMPTY_BORDER_COLOR[3], EMPTY_BORDER_COLOR[4]
-    )
+    WC.ApplyBackdrop(frame, WC.INPUT_BG, EMPTY_BORDER_COLOR)
 
-    -- Icon texture (inset 1px for border)
+    -- A simple empty-state mark keeps the drop target visible without bag artwork.
+    local emptyMark = frame:CreateFontString(nil, "OVERLAY")
+    emptyMark:SetFont(WC.FONT_PATH, 18, "")
+    emptyMark:SetPoint("CENTER", frame, "CENTER", 0, 0)
+    emptyMark:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
+    emptyMark:SetText("+")
+    frame._emptyMark = emptyMark
+
+    -- Leave breathing room between the artwork and its quality-colored border.
     local icon = frame:CreateTexture(nil, "ARTWORK")
-    icon:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
-    icon:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1)
-    icon:SetTexture(EMPTY_ICON)
+    icon:SetPoint("TOPLEFT", frame, "TOPLEFT", 3, -3)
+    icon:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -3, 3)
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    icon:Hide()
     frame._icon = icon
 
     -- Enable drag-and-drop receive
@@ -171,7 +173,8 @@ function ns.Widgets.CreateItemSlot(parent, opts)
     function frame:ClearItem()
         self._itemID = nil
         self._itemQuality = nil
-        self._icon:SetTexture(EMPTY_ICON)
+        self._icon:Hide()
+        self._emptyMark:Show()
         self._icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         UpdateSlotBorder(self, nil)
     end

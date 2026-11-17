@@ -13,7 +13,6 @@ local WC = ns.WidgetConstants
 -------------------------------------------------------------------------------
 
 local CreateFrame = CreateFrame
-local pcall = pcall
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -23,48 +22,31 @@ local FONT_PATH = WC.FONT_PATH
 local FONT_SIZE = WC.FONT_SIZE
 local DEFAULT_WIDTH = 120
 local BUTTON_HEIGHT = 24
-local WHITE8x8 = WC.WHITE8x8
-local NORMAL_BG = { 0.15, 0.15, 0.15, 0.9 }
-local NORMAL_BORDER = { 0.4, 0.4, 0.4, 1 }
 local DISABLED_COLOR = WC.DISABLED_COLOR
 local WHITE_COLOR = WC.WHITE_COLOR
 
 -------------------------------------------------------------------------------
--- Build a custom styled button (fallback when template is unavailable)
+-- Keep normal, hover and pressed states consistent on every client
 -------------------------------------------------------------------------------
 
-local function CreateCustomButton(parent, width)
-    local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    btn:SetSize(width, BUTTON_HEIGHT)
-    btn:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
-        edgeSize = 1,
-    })
-    btn:SetBackdropColor(NORMAL_BG[1], NORMAL_BG[2], NORMAL_BG[3], NORMAL_BG[4])
-    btn:SetBackdropBorderColor(NORMAL_BORDER[1], NORMAL_BORDER[2], NORMAL_BORDER[3], NORMAL_BORDER[4])
-
-    local text = btn:CreateFontString(nil, "OVERLAY")
-    text:SetFont(FONT_PATH, FONT_SIZE, "")
-    text:SetPoint("CENTER")
-    text:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
-    btn._text = text
-
-    -- Highlight
-    local highlight = btn:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
-
-    -- Pressed visual
-    btn:SetScript("OnMouseDown", function(self)
-        if self._disabled then return end
-        self._text:SetPoint("CENTER", 1, -1)
-    end)
-    btn:SetScript("OnMouseUp", function(self)
-        self._text:SetPoint("CENTER", 0, 0)
-    end)
-
-    return btn
+local function UpdateStyle(btn)
+    local bg = WC.WIDGET_BG
+    local border = WC.CONTROL_BORDER
+    if not btn._disabled then
+        if btn._pressed then
+            bg = WC.WIDGET_BG_PRESSED
+            border = WC.ACCENT_COLOR
+        elseif btn._hovered then
+            bg = WC.WIDGET_BG_HOVER
+            border = WC.BORDER_HOVER
+        end
+    end
+    btn:SetBackdropColor(bg[1], bg[2], bg[3], bg[4])
+    btn:SetBackdropBorderColor(border[1], border[2], border[3], border[4])
+    btn._text:ClearAllPoints()
+    local offset = btn._pressed and not btn._disabled and -1 or 0
+    btn._text:SetPoint("LEFT", btn, "LEFT", 8, offset)
+    btn._text:SetPoint("RIGHT", btn, "RIGHT", -8, offset)
 end
 
 -------------------------------------------------------------------------------
@@ -73,17 +55,22 @@ end
 
 function ns.Widgets.CreateButton(parent, opts)
     local width = opts.width or DEFAULT_WIDTH
-    -- Try template first, fall back to custom
-    local ok, btn = pcall(CreateFrame, "Button", nil, parent, "UIPanelButtonTemplate")
-    if not ok or not btn then
-        btn = CreateCustomButton(parent, width)
-    else
-        btn:SetSize(width, BUTTON_HEIGHT)
-    end
+    local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    btn:SetSize(width, BUTTON_HEIGHT)
+    WC.ApplyBackdrop(btn, WC.WIDGET_BG, WC.CONTROL_BORDER)
+
+    local text = btn:CreateFontString(nil, "OVERLAY")
+    text:SetFont(FONT_PATH, FONT_SIZE, "")
+    text:SetJustifyH("CENTER")
+    text:SetWordWrap(false)
+    text:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+    btn:SetFontString(text)
+    btn._text = text
 
     btn:SetText(opts.text or "")
     btn._tooltipText = opts.tooltip
     btn._disabled = false
+    UpdateStyle(btn)
 
     -- Click handler
     btn:SetScript("OnClick", function(self)
@@ -92,22 +79,44 @@ function ns.Widgets.CreateButton(parent, opts)
         ns.Fire("OnWidgetChanged", { widgetType = "Button", key = opts.key, value = true })
     end)
 
-    btn:SetScript("OnEnter", WC.ShowTooltip)
-    btn:SetScript("OnLeave", WC.HideTooltip)
+    btn:SetScript("OnEnter", function(self)
+        self._hovered = true
+        UpdateStyle(self)
+        WC.ShowTooltip(self)
+    end)
+    btn:SetScript("OnLeave", function(self)
+        self._hovered = false
+        self._pressed = false
+        UpdateStyle(self)
+        WC.HideTooltip()
+    end)
+    btn:SetScript("OnMouseDown", function(self)
+        if self._disabled then return end
+        self._pressed = true
+        UpdateStyle(self)
+    end)
+    btn:SetScript("OnMouseUp", function(self)
+        self._pressed = false
+        UpdateStyle(self)
+    end)
+    btn:SetScript("OnHide", function(self)
+        self._hovered = false
+        self._pressed = false
+        UpdateStyle(self)
+    end)
 
     -- SetDisabled
     function btn:SetDisabled(state)
         self._disabled = state
+        self._pressed = false
+        self._hovered = false
+        UpdateStyle(self)
         if state then
             self:SetAlpha(0.5)
-            if self._text then
-                self._text:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
-            end
+            self._text:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
         else
             self:SetAlpha(1)
-            if self._text then
-                self._text:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
-            end
+            self._text:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
         end
     end
 

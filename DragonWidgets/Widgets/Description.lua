@@ -19,8 +19,8 @@ local CreateFrame = CreateFrame
 -------------------------------------------------------------------------------
 
 local FONT_PATH = WC.FONT_PATH
-local FONT_SIZE = 11
-local GRAY_COLOR = { 0.7, 0.7, 0.7 }
+local FONT_SIZE = WC.FONT_SIZE_SMALL
+local GRAY_COLOR = WC.GRAY_COLOR
 local PADDING_BOTTOM = 4
 local DEFAULT_HEIGHT = 20
 

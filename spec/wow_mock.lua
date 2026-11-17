@@ -49,15 +49,23 @@ UIParent = nil -- set after CreateFrame is defined
 local function CreateMockTexture()
     local tex = {
         _shown = true,
+        _points = {},
+        _size = { w = 0, h = 0 },
     }
 
-    function tex.SetTexture() end
-    function tex.SetPoint() end
-    function tex.SetSize() end
+    function tex:SetTexture(texture) self._texture = texture end
+    function tex:SetPoint(...) self._points[#self._points + 1] = { ... } end
+    function tex:ClearAllPoints() self._points = {} end
+    function tex:SetSize(w, h) self._size = { w = w, h = h } end
+    function tex:SetWidth(w) self._size.w = w end
+    function tex:SetHeight(h) self._size.h = h end
+    function tex:GetWidth() return self._size.w end
+    function tex:GetHeight() return self._size.h end
     function tex.SetAllPoints() end
     function tex.SetTexCoord() end
-    function tex.SetVertexColor() end
-    function tex.SetColorTexture() end
+    function tex:SetVertexColor(...) self._vertexColor = { ... } end
+    function tex:SetColorTexture(...) self._color = { ... } end
+    function tex:SetRotation(rotation) self._rotation = rotation end
 
     function tex:Hide()
         self._shown = false
@@ -87,6 +95,8 @@ local function CreateMockFontString()
         _text = "",
         _font = nil,
         _fontSize = 12,
+        _points = {},
+        _shown = true,
     }
 
     function fs.SetFont(_, font, size)
@@ -94,12 +104,16 @@ local function CreateMockFontString()
         fs._fontSize = size
     end
 
-    function fs.SetTextColor() end
-    function fs.SetPoint() end
+    function fs:SetTextColor(...) self._textColor = { ... } end
+    function fs:SetPoint(...) self._points[#self._points + 1] = { ... } end
     function fs.SetJustifyH() end
     function fs.SetJustifyV() end
     function fs.SetWordWrap() end
     function fs.SetWidth() end
+    function fs:Show() self._shown = true end
+    function fs:Hide() self._shown = false end
+    function fs:SetShown(state) self._shown = not not state end
+    function fs:IsShown() return self._shown end
 
     function fs:SetText(text)
         self._text = text or ""
@@ -118,7 +132,7 @@ local function CreateMockFontString()
     end
 
     function fs.SetNonSpaceWrap() end
-    function fs.ClearAllPoints() end
+    function fs:ClearAllPoints() self._points = {} end
 
     return fs
 end
@@ -127,8 +141,13 @@ end
 -- Mock frame
 -------------------------------------------------------------------------------
 
-local function CreateMockFrame()
+local function CreateMockFrame(frameType, name, parent, template)
     local frame = {
+        _frameType = frameType,
+        _name = name,
+        _parent = parent,
+        _template = template,
+        _children = {},
         _points = {},
         _shown = false,
         _size = { w = 0, h = 0 },
@@ -205,7 +224,7 @@ local function CreateMockFrame()
         self._backdropBorderColor = { r, g, b, a }
     end
 
-    function frame.EnableMouse() end
+    function frame:EnableMouse(enabled) self._mouseEnabled = enabled end
     function frame.SetMovable() end
     function frame.SetClampedToScreen() end
     function frame.StartMoving() end
@@ -222,6 +241,11 @@ local function CreateMockFrame()
     function frame.SetFont() end
     function frame.SetJustifyH() end
     function frame.SetTextColor() end
+    function frame:SetFontString(fontString)
+        self._buttonFontString = fontString
+        fontString:SetText(self._buttonText or "")
+    end
+    function frame:GetFontString() return self._buttonFontString end
 
     function frame:CreateTexture() -- luacheck: ignore 212/self
         return CreateMockTexture()
@@ -239,12 +263,28 @@ local function CreateMockFrame()
     function frame:SetAutoFocus() end
     function frame:SetMaxLetters() end
     function frame:SetTextInsets() end
-    function frame:ClearFocus() end
+    function frame:SetFocus()
+        if self._hasFocus then return end
+        self._hasFocus = true
+        if self._scripts.OnEditFocusGained then self._scripts.OnEditFocusGained(self) end
+    end
+    function frame:ClearFocus()
+        if not self._hasFocus then return end
+        self._hasFocus = false
+        if self._scripts.OnEditFocusLost then self._scripts.OnEditFocusLost(self) end
+    end
+    function frame:HasFocus() return not not self._hasFocus end
     function frame:GetText()
+        if self._frameType == "Button" then return self._buttonText or "" end
         return self._text or ""
     end
     function frame:SetText(text)
-        self._text = text or ""
+        if self._frameType == "Button" then
+            self._buttonText = text or ""
+            if self._buttonFontString then self._buttonFontString:SetText(self._buttonText) end
+        else
+            self._text = text or ""
+        end
     end
 
     -- Slider-specific methods
@@ -270,8 +310,10 @@ local function CreateMockFrame()
     return frame
 end
 
-function CreateFrame(_, _, _, _)
-    return CreateMockFrame()
+function CreateFrame(frameType, name, parent, template)
+    local frame = CreateMockFrame(frameType, name, parent, template)
+    if parent then parent._children[#parent._children + 1] = frame end
+    return frame
 end
 
 UIParent = CreateMockFrame()

@@ -25,7 +25,7 @@ local SWATCH_SIZE = 24
 local WHITE8x8 = WC.WHITE8x8
 local WHITE_COLOR = WC.WHITE_COLOR
 local DISABLED_COLOR = WC.DISABLED_COLOR
-local BORDER_COLOR = { 0.5, 0.5, 0.5, 1 }
+local BORDER_COLOR = WC.CONTROL_BORDER
 local FRAME_HEIGHT = 24
 local LABEL_OFFSET = 8
 
@@ -140,13 +140,33 @@ function ns.Widgets.CreateColorPicker(parent, opts)
     border:SetSize(SWATCH_SIZE + 2, SWATCH_SIZE + 2)
     border:SetPoint("LEFT", label, "RIGHT", LABEL_OFFSET, 0)
     border:SetBackdrop({ bgFile = WHITE8x8, edgeFile = WHITE8x8, edgeSize = 1 })
-    border:SetBackdropColor(0, 0, 0, 0)
+    border:SetBackdropColor(WC.INPUT_BG[1], WC.INPUT_BG[2], WC.INPUT_BG[3], 1)
     border:SetBackdropBorderColor(BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], BORDER_COLOR[4])
 
-    -- Color swatch texture
+    -- Checkerboard makes translucent colors legible independently of the panel.
+    local cellSize = (SWATCH_SIZE - 4) / 4
+    for row = 0, 3 do
+        for col = 0, 3 do
+            local cell = border:CreateTexture(nil, "BACKGROUND", nil, 1)
+            local shade = (row + col) % 2 == 0 and 0.24 or 0.44
+            cell:SetSize(cellSize, cellSize)
+            cell:SetPoint("TOPLEFT", border, "TOPLEFT", 3 + col * cellSize, -3 - row * cellSize)
+            cell:SetColorTexture(shade, shade, shade, 1)
+        end
+    end
+
+    -- Inset color swatch texture
     local swatch = border:CreateTexture(nil, "ARTWORK")
-    swatch:SetPoint("TOPLEFT", border, "TOPLEFT", 1, -1)
-    swatch:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT", -1, 1)
+    swatch:SetPoint("TOPLEFT", border, "TOPLEFT", 3, -3)
+    swatch:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT", -3, 3)
+
+    border:SetScript("OnEnter", function()
+        if disabled then return end
+        border:SetBackdropBorderColor(WC.ACCENT_COLOR[1], WC.ACCENT_COLOR[2], WC.ACCENT_COLOR[3], 1)
+    end)
+    border:SetScript("OnLeave", function()
+        border:SetBackdropBorderColor(BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], BORDER_COLOR[4])
+    end)
 
     -- Initialize swatch color
     local initR, initG, initB, initA = 1, 1, 1, 1
@@ -191,6 +211,7 @@ function ns.Widgets.CreateColorPicker(parent, opts)
 
     function frame.SetDisabled(_, state)
         disabled = state
+        border:SetBackdropBorderColor(BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], BORDER_COLOR[4])
         if disabled then
             label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
             border:SetAlpha(0.5)
