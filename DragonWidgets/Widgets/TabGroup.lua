@@ -13,6 +13,7 @@ local WC = ns.WidgetConstants
 -------------------------------------------------------------------------------
 
 local CreateFrame = CreateFrame
+local abs = math.abs
 local floor = math.floor
 local huge = math.huge
 local sort = table.sort
@@ -44,6 +45,22 @@ local function OrderedTabs(tabs)
     end)
     for i = 1, #ordered do ordered[i] = ordered[i].definition end
     return ordered
+end
+
+local function CreateSections(parent, definitions)
+    local LC = ns.LayoutConstants
+    local yOffset = LC.PADDING_TOP
+    for _, definition in ipairs(definitions) do
+        local section = ns.Widgets.CreateSection(parent, definition.title)
+        local content = section.content
+        local innerY = -LC.SECTION_PADDING_TOP
+        for _, widget in ipairs(definition.createFunc(content)) do
+            innerY = LC.AnchorWidget(widget, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
+        end
+        section:SetContentHeight(abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+        yOffset = LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
+    end
+    parent:SetHeight(abs(yOffset) + LC.PADDING_BOTTOM)
 end
 
 -------------------------------------------------------------------------------
@@ -289,7 +306,8 @@ function ns.Widgets.CreateTabGroup(parent, tabs, opts)
 
     -- SelectTab: switch to a tab, lazy-create content on first visit
     function tabGroup.SelectTab(_, id)
-        if selectedTab == id or not definitions[id] then return end
+        local definition = definitions[id]
+        if selectedTab == id or not definition then return end
 
         -- Deselect previous
         if selectedTab and tabButtons[selectedTab] then
@@ -300,7 +318,7 @@ function ns.Widgets.CreateTabGroup(parent, tabs, opts)
         end
 
         selectedTab = id
-        if pageTitle then pageTitle:SetText(definitions[id].label) end
+        if pageTitle then pageTitle:SetText(definition.label) end
 
         -- Activate new tab button
         if tabButtons[id] then
@@ -315,12 +333,10 @@ function ns.Widgets.CreateTabGroup(parent, tabs, opts)
 
             if opts.settingsLayout then ns.LayoutConstants.BeginSettingsLayout(scrollWrapper.scrollChild) end
 
-            -- Find the tab definition and call its createFunc
-            for _, tabDef in ipairs(tabs) do
-                if tabDef.id == id and tabDef.createFunc then
-                    tabDef.createFunc(scrollWrapper.scrollChild)
-                    break
-                end
+            if definition.sections then
+                CreateSections(scrollWrapper.scrollChild, definition.sections)
+            elseif definition.createFunc then
+                definition.createFunc(scrollWrapper.scrollChild)
             end
 
             if opts.settingsLayout then ns.LayoutConstants.EndSettingsLayout(scrollWrapper.scrollChild) end

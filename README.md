@@ -21,7 +21,7 @@ The widgets use layered charcoal surfaces, locale-aware sans-serif text, and tea
 |:-------|:------------|
 | Panel | BackdropTemplate container frame with title bar and close button |
 | ScrollFrame | ScrollFrame with child and scrollbar slider for scrollable content areas |
-| TabGroup | Horizontal tab bar with lazy content creation and scroll frames |
+| TabGroup | Sidebar or horizontal navigation with lazy page creation and scroll frames |
 | Header | Neutral sub-header with a subtle horizontal separator |
 | Description | Word-wrapped gray description text block |
 | Section | Card panel container that groups related settings with a header |
@@ -102,12 +102,9 @@ read_globals = {
 }
 ```
 
-### 5. Access the namespace
+### 5. Build the options panel
 
-```lua
-local ns = DragonWidgetsNS
-local WC = ns.WidgetConstants
-```
+Use `DragonWidgetsNS.CreateOptionsPanel` with a `sections` array on each settings page. The shared defaults provide sidebar navigation, bordered section cards and responsive settings rows. See the [options layout guide](docs/options-layout.md) for a complete example and preview configuration.
 
 ## 🤝 Contributing
 

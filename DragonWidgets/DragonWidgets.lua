@@ -44,11 +44,11 @@ end
 -- config = {
 --     name      = string,           -- global frame name
 --     title     = string (optional),-- title bar text
---     width     = number (optional),-- default 800
---     height    = number (optional),-- default 600
---     tabs      = table,            -- array of tab definitions
---     navigation = "sidebar",      -- optional; horizontal tabs remain the default
---     settingsLayout = boolean,    -- opt into paired, compact settings rows
+--     width     = number (optional),-- default 1080 (800 with horizontal navigation)
+--     height    = number (optional),-- default 720 (600 with horizontal navigation)
+--     tabs      = table,            -- array of tabs with sections or a custom createFunc
+--     navigation = "sidebar",      -- default; use "horizontal" for tabs across the top
+--     settingsLayout = boolean,    -- default true; false keeps manual settings geometry
 --     preview = { height, createFunc }, -- optional fixed preview host; createFunc
 --                                      -- returns a controller with Refresh(tabId)
 --                                      -- and optional OnHide() cleanup
@@ -58,7 +58,11 @@ end
 -------------------------------------------------------------------------------
 
 function ns.CreateOptionsPanel(config)
-    local panel = ns.Widgets.CreatePanel(config.name, config.width or 800, config.height or 600)
+    local navigation = config.navigation or "sidebar"
+    local sidebar = navigation == "sidebar"
+    local width = config.width or (sidebar and 1080 or 800)
+    local height = config.height or (sidebar and 720 or 600)
+    local panel = ns.Widgets.CreatePanel(config.name, width, height)
     panel:SetTitle(config.title or "")
 
     local tabGroup
@@ -82,12 +86,12 @@ function ns.CreateOptionsPanel(config)
     end
 
     tabGroup = ns.Widgets.CreateTabGroup(panel, config.tabs, {
-        navigation = config.navigation,
-        settingsLayout = config.settingsLayout,
+        navigation = navigation,
+        settingsLayout = config.settingsLayout ~= false,
         previewHeight = config.preview and (config.preview.height or 170),
         onSelect = RefreshPreview,
     })
-    tabGroup:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, config.navigation == "sidebar" and -40 or -32)
+    tabGroup:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, sidebar and -40 or -32)
     tabGroup:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -8, 8)
 
     if config.preview then
@@ -111,12 +115,12 @@ function ns.CreateOptionsPanel(config)
     end
 
     panel:HookScript("OnShow", function()
-        if config.navigation == "sidebar" then
+        if sidebar then
             local screenWidth, screenHeight = UIParent:GetWidth(), UIParent:GetHeight()
             if screenWidth > 0 and screenHeight > 0 then
                 panel:SetSize(
-                    math_min(config.width or 800, math_max(1, screenWidth - 32)),
-                    math_min(config.height or 600, math_max(1, screenHeight - 32))
+                    math_min(width, math_max(1, screenWidth - 32)),
+                    math_min(height, math_max(1, screenHeight - 32))
                 )
             end
         end
