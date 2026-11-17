@@ -110,6 +110,7 @@ local function CreateMockFontString()
     function fs.SetJustifyV() end
     function fs.SetWordWrap() end
     function fs.SetWidth() end
+    function fs:SetHeight(height) self._height = height end
     function fs:Show() self._shown = true end
     function fs:Hide() self._shown = false end
     function fs:SetShown(state) self._shown = not not state end
@@ -173,11 +174,15 @@ local function CreateMockFrame(frameType, name, parent, template)
     end
 
     function frame:Show()
+        if self._shown then return end
         self._shown = true
+        if self._scripts.OnShow then self._scripts.OnShow(self) end
     end
 
     function frame:Hide()
+        if not self._shown then return end
         self._shown = false
+        if self._scripts.OnHide then self._scripts.OnHide(self) end
     end
 
     function frame:IsShown()
@@ -185,15 +190,17 @@ local function CreateMockFrame(frameType, name, parent, template)
     end
 
     function frame:SetSize(w, h)
+        if self._size.w == w and self._size.h == h then return end
         self._size = { w = w, h = h }
+        if self._scripts.OnSizeChanged then self._scripts.OnSizeChanged(self, w, h) end
     end
 
     function frame:SetHeight(h)
-        self._size.h = h
+        self:SetSize(self._size.w, h)
     end
 
     function frame:SetWidth(w)
-        self._size.w = w
+        self:SetSize(w, self._size.h)
     end
 
     function frame:GetWidth()
@@ -237,7 +244,13 @@ local function CreateMockFrame(frameType, name, parent, template)
     function frame.SetVerticalScroll() end
     function frame.EnableMouseWheel() end
     function frame.SetNormalTexture() end
-    function frame.HookScript() end
+    function frame:HookScript(event, handler)
+        local previous = self._scripts[event]
+        self._scripts[event] = function(...)
+            if previous then previous(...) end
+            handler(...)
+        end
+    end
     function frame.SetFont() end
     function frame.SetJustifyH() end
     function frame.SetTextColor() end

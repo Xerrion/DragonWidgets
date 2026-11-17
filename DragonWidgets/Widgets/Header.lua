@@ -52,6 +52,7 @@ function ns.Widgets.CreateHeader(parent, text)
 
     frame._fontString = fontString
     frame._separator = separator
+    frame._layoutRole = "heading"
 
     return frame
 end

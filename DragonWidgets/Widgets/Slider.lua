@@ -358,5 +358,16 @@ function ns.Widgets.CreateSlider(parent, opts)
     frame._label = label
     frame.order = opts.order
 
+    function frame:SetCompactLayout(width)
+        local controlWidth = ns.LayoutConstants.GetCompactControlWidth(width)
+        ns.LayoutConstants.PrepareCompactRow(self, label, controlWidth)
+        editBox:ClearAllPoints()
+        editBox:SetPoint("RIGHT", self, "RIGHT", 0, 4)
+        slider:ClearAllPoints()
+        slider:SetWidth(math_max(20, controlWidth - EDITBOX_WIDTH - 8))
+        slider:SetPoint("RIGHT", editBox, "LEFT", -8, 0)
+        UpdateFillWidth(currentValue)
+    end
+
     return frame
 end

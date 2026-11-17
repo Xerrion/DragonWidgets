@@ -494,5 +494,13 @@ function ns.Widgets.CreateDropdown(parent, opts)
     frame._label = label
     frame.order = opts.order
 
+    function frame:SetCompactLayout(width)
+        local controlWidth = ns.LayoutConstants.GetCompactControlWidth(width)
+        ns.LayoutConstants.PrepareCompactRow(self, label, controlWidth)
+        button:ClearAllPoints()
+        button:SetWidth(controlWidth)
+        button:SetPoint("RIGHT", self, "RIGHT", 0, 0)
+    end
+
     return frame
 end
