@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/Xerrion/DragonWidgets/compare/0.3.0...0.4.0) (2026-11-17)
+
+
+### Features
+
+* standardize Dragon addon options defaults ([#16](https://github.com/Xerrion/DragonWidgets/issues/16)) ([3538362](https://github.com/Xerrion/DragonWidgets/commit/35383621b43806f4b5231be2e41c2f979933fba1))
+
 ## [0.3.0](https://github.com/Xerrion/DragonWidgets/compare/0.2.0...0.3.0) (2026-11-17)
 
 
