@@ -19,13 +19,10 @@ local CreateFrame = CreateFrame
 -------------------------------------------------------------------------------
 
 local FONT_PATH = WC.FONT_PATH
-local LABEL_FONT_SIZE = 12
-local INPUT_FONT_SIZE = 11
+local LABEL_FONT_SIZE = WC.FONT_SIZE
+local INPUT_FONT_SIZE = WC.FONT_SIZE
 local WHITE_COLOR = WC.WHITE_COLOR
 local DISABLED_COLOR = WC.DISABLED_COLOR
-local WHITE8x8 = WC.WHITE8x8
-local INPUT_BG = { 0.08, 0.08, 0.08, 0.9 }
-local INPUT_BORDER = { 0.3, 0.3, 0.3, 1 }
 local DEFAULT_WIDTH = 200
 local INPUT_HEIGHT = 22
 local FRAME_HEIGHT = 40
@@ -40,6 +37,8 @@ function ns.Widgets.CreateTextInput(parent, opts)
     frame:SetHeight(FRAME_HEIGHT)
 
     local disabled = false
+    local hovered = false
+    local focused = false
     local inputWidth = opts.width or DEFAULT_WIDTH
 
     -- Label at top
@@ -53,21 +52,36 @@ function ns.Widgets.CreateTextInput(parent, opts)
     local editBox = CreateFrame("EditBox", nil, frame, "BackdropTemplate")
     editBox:SetSize(inputWidth, INPUT_HEIGHT)
     editBox:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -LABEL_GAP)
-    editBox:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
-        edgeSize = 1,
-    })
-    editBox:SetBackdropColor(INPUT_BG[1], INPUT_BG[2], INPUT_BG[3], INPUT_BG[4])
-    editBox:SetBackdropBorderColor(INPUT_BORDER[1], INPUT_BORDER[2], INPUT_BORDER[3], INPUT_BORDER[4])
+    WC.ApplyBackdrop(editBox, WC.INPUT_BG, WC.CONTROL_BORDER)
     editBox:SetFont(FONT_PATH, INPUT_FONT_SIZE, "")
     editBox:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
-    editBox:SetTextInsets(4, 4, 0, 0)
+    editBox:SetTextInsets(7, 7, 0, 0)
     editBox:SetAutoFocus(false)
 
     if opts.maxLength then
         editBox:SetMaxLetters(opts.maxLength)
     end
+
+    local function UpdateBorder()
+        local border = WC.CONTROL_BORDER
+        if not disabled then
+            if focused then
+                border = WC.ACCENT_COLOR
+            elseif hovered then
+                border = WC.BORDER_HOVER
+            end
+        end
+        editBox:SetBackdropBorderColor(border[1], border[2], border[3], border[4])
+    end
+
+    editBox:SetScript("OnEnter", function()
+        hovered = true
+        UpdateBorder()
+    end)
+    editBox:SetScript("OnLeave", function()
+        hovered = false
+        UpdateBorder()
+    end)
 
     -- OnEnterPressed: commit value
     editBox:SetScript("OnEnterPressed", function(self)
@@ -92,9 +106,23 @@ function ns.Widgets.CreateTextInput(parent, opts)
         self:ClearFocus()
     end)
 
-    -- Block focus when disabled
+    -- Focus remains visible after the pointer leaves the input.
     editBox:SetScript("OnEditFocusGained", function(self)
-        if disabled then self:ClearFocus() end
+        if disabled then
+            self:ClearFocus()
+            return
+        end
+        focused = true
+        UpdateBorder()
+    end)
+    editBox:SetScript("OnEditFocusLost", function()
+        focused = false
+        UpdateBorder()
+    end)
+    editBox:SetScript("OnHide", function()
+        hovered = false
+        focused = false
+        UpdateBorder()
     end)
 
     -- Initialize from opts.get
@@ -113,6 +141,12 @@ function ns.Widgets.CreateTextInput(parent, opts)
 
     function frame.SetDisabled(_, state)
         disabled = state
+        hovered = false
+        if disabled then
+            focused = false
+            editBox:ClearFocus()
+        end
+        UpdateBorder()
         if disabled then
             label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
             editBox:SetAlpha(0.5)

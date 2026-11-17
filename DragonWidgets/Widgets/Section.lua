@@ -19,11 +19,10 @@ local CreateFrame = CreateFrame
 -------------------------------------------------------------------------------
 
 local FONT_PATH = WC.FONT_PATH
-local WHITE8x8 = WC.WHITE8x8
 local SECTION_BG = WC.SECTION_BG
 local SECTION_BORDER = WC.SECTION_BORDER
 local HEADER_ACCENT = WC.HEADER_ACCENT
-local GOLD_COLOR = WC.GOLD_COLOR
+local TEXT_COLOR = WC.TEXT_COLOR
 
 local HEADER_FONT_SIZE = 13
 local HEADER_HEIGHT = 24
@@ -38,15 +37,7 @@ function ns.Widgets.CreateSection(parent, headerText)
     frame:SetHeight(HEADER_HEIGHT + PADDING + PADDING)
 
     -- Backdrop: subtle card background with thin border
-    frame:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
-        edgeSize = 1,
-    })
-    frame:SetBackdropColor(SECTION_BG[1], SECTION_BG[2], SECTION_BG[3], SECTION_BG[4])
-    frame:SetBackdropBorderColor(
-        SECTION_BORDER[1], SECTION_BORDER[2], SECTION_BORDER[3], SECTION_BORDER[4]
-    )
+    WC.ApplyBackdrop(frame, SECTION_BG, SECTION_BORDER)
 
     -- Header accent background bar
     local headerBg = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
@@ -57,12 +48,14 @@ function ns.Widgets.CreateSection(parent, headerText)
         HEADER_ACCENT[1], HEADER_ACCENT[2], HEADER_ACCENT[3], HEADER_ACCENT[4]
     )
 
-    -- Header text (bold gold)
+    -- The heading has its own surface; reserve bright color for interactive states.
     local headerLabel = frame:CreateFontString(nil, "OVERLAY")
-    headerLabel:SetFont(FONT_PATH, HEADER_FONT_SIZE, "OUTLINE")
-    headerLabel:SetTextColor(GOLD_COLOR[1], GOLD_COLOR[2], GOLD_COLOR[3])
+    headerLabel:SetFont(FONT_PATH, HEADER_FONT_SIZE, "")
+    headerLabel:SetTextColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     headerLabel:SetPoint("LEFT", frame, "TOPLEFT", PADDING, -(HEADER_HEIGHT / 2))
+    headerLabel:SetPoint("RIGHT", frame, "TOPRIGHT", -PADDING, -(HEADER_HEIGHT / 2))
     headerLabel:SetJustifyH("LEFT")
+    headerLabel:SetWordWrap(false)
     headerLabel:SetText(headerText or "")
 
     -- Content area below the header

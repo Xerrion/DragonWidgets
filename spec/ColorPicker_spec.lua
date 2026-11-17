@@ -150,12 +150,13 @@ describe("ColorPicker", function()
 
     describe("swatchFunc callback", function()
         local function triggerSwatchFunc(widget, r, g, b, a)
+            local onMouseUp = widget._border._scripts["OnMouseUp"]
+            if onMouseUp then onMouseUp(widget._border, "LeftButton") end
+            -- Simulate choosing a color after opening initializes the picker.
             ColorPickerFrame._r = r or 1   -- luacheck: ignore 113
             ColorPickerFrame._g = g or 1   -- luacheck: ignore 113
             ColorPickerFrame._b = b or 1   -- luacheck: ignore 113
             ColorPickerFrame._a = a or 1   -- luacheck: ignore 113
-            local onMouseUp = widget._border._scripts["OnMouseUp"]
-            if onMouseUp then onMouseUp(widget._border, "LeftButton") end
             if ColorPickerFrame._swatchFunc then   -- luacheck: ignore 113
                 ColorPickerFrame._swatchFunc()     -- luacheck: ignore 113
             end

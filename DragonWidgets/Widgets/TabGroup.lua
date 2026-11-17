@@ -30,19 +30,21 @@ local TAB_PADDING = 16
 -------------------------------------------------------------------------------
 
 local function StyleTabActive(btn)
+    btn._active = true
     btn._bg:SetColorTexture(
-        WC.SECTION_BG[1], WC.SECTION_BG[2], WC.SECTION_BG[3], WC.SECTION_BG[4]
+        WC.ACCENT_SOFT[1], WC.ACCENT_SOFT[2], WC.ACCENT_SOFT[3], WC.ACCENT_SOFT[4]
     )
-    btn._text:SetTextColor(WC.GOLD_COLOR[1], WC.GOLD_COLOR[2], WC.GOLD_COLOR[3])
+    btn._text:SetTextColor(WC.ACCENT_COLOR[1], WC.ACCENT_COLOR[2], WC.ACCENT_COLOR[3])
     btn._bottomBorder:Hide()
     if btn._activeBar then btn._activeBar:Show() end
 end
 
 local function StyleTabInactive(btn)
-    btn._bg:SetColorTexture(
-        WC.PANEL_BG[1], WC.PANEL_BG[2], WC.PANEL_BG[3], WC.PANEL_BG[4]
-    )
-    btn._text:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
+    btn._active = false
+    local bg = btn._hovered and WC.WIDGET_BG or WC.PANEL_BG
+    local textColor = btn._hovered and WC.TEXT_COLOR or WC.GRAY_COLOR
+    btn._bg:SetColorTexture(bg[1], bg[2], bg[3], bg[4])
+    btn._text:SetTextColor(textColor[1], textColor[2], textColor[3])
     btn._bottomBorder:Show()
     if btn._activeBar then btn._activeBar:Hide() end
 end
@@ -62,8 +64,10 @@ local function CreateTabButton(parent, label, tabGroup)
     btn._bg = bg
 
     -- Text
-    local text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    text:SetPoint("CENTER", btn, "CENTER", 0, 0)
+    local text = btn:CreateFontString(nil, "OVERLAY")
+    text:SetFont(WC.FONT_PATH, WC.FONT_SIZE, "")
+    text:SetJustifyH("CENTER")
+    text:SetWordWrap(false)
     text:SetText(label)
     text:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
     btn._text = text
@@ -72,6 +76,8 @@ local function CreateTabButton(parent, label, tabGroup)
     local textWidth = text:GetStringWidth() or 40
     local width = math.max(TAB_MIN_WIDTH, textWidth + TAB_PADDING * 2)
     btn:SetWidth(width)
+    text:SetPoint("LEFT", btn, "LEFT", 8, 0)
+    text:SetPoint("RIGHT", btn, "RIGHT", -8, 0)
 
     -- Bottom border (separator for inactive tabs)
     local bottomBorder = btn:CreateTexture(nil, "ARTWORK")
@@ -84,19 +90,27 @@ local function CreateTabButton(parent, label, tabGroup)
     )
     btn._bottomBorder = bottomBorder
 
-    -- Gold underline for active state
+    -- Accent underline keeps selection visible independently of text color.
     local activeBar = btn:CreateTexture(nil, "ARTWORK")
     activeBar:SetHeight(2)
     activeBar:SetPoint("BOTTOMLEFT", btn, "BOTTOMLEFT", 0, 0)
     activeBar:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 0, 0)
-    activeBar:SetColorTexture(WC.GOLD_COLOR[1], WC.GOLD_COLOR[2], WC.GOLD_COLOR[3], 0.8)
+    activeBar:SetColorTexture(WC.ACCENT_COLOR[1], WC.ACCENT_COLOR[2], WC.ACCENT_COLOR[3], 1)
     activeBar:Hide()
     btn._activeBar = activeBar
 
-    -- Highlight
-    local highlight = btn:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.05)
+    btn:SetScript("OnEnter", function()
+        btn._hovered = true
+        if not btn._active then StyleTabInactive(btn) end
+    end)
+    btn:SetScript("OnLeave", function()
+        btn._hovered = false
+        if not btn._active then StyleTabInactive(btn) end
+    end)
+    btn:SetScript("OnHide", function()
+        btn._hovered = false
+        if not btn._active then StyleTabInactive(btn) end
+    end)
 
     -- Click handler delegates to tabGroup
     btn:SetScript("OnClick", function()
@@ -174,11 +188,11 @@ function ns.Widgets.CreateTabGroup(parent, tabs)
             scale = (availableWidth - gapWidth) / (totalWidth - gapWidth)
         end
 
-        -- Re-layout with last tab absorbing rounding remainder
+        -- Preserve natural widths when they fit; only absorb overflow rounding.
         local xOff = 0
         for i, btn in ipairs(tabList) do
             local w
-            if i == #tabList then
+            if i == #tabList and scale < 1 then
                 w = availableWidth - xOff
             else
                 w = floor(btn._baseWidth * scale)

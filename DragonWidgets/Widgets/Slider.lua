@@ -24,16 +24,16 @@ local format = string.format
 -------------------------------------------------------------------------------
 
 local FONT_PATH = WC.FONT_PATH
-local LABEL_FONT_SIZE = 12
-local VALUE_FONT_SIZE = 11
+local LABEL_FONT_SIZE = WC.FONT_SIZE
+local VALUE_FONT_SIZE = WC.FONT_SIZE_SMALL
 local MIN_MAX_FONT_SIZE = 10
 local WHITE_COLOR = WC.WHITE_COLOR
 local GRAY_COLOR = WC.GRAY_COLOR
 local DISABLED_COLOR = WC.DISABLED_COLOR
-local WHITE8x8 = WC.WHITE8x8
 local EDITBOX_WIDTH = 50
 local FRAME_HEIGHT = 55
 local SLIDER_HEIGHT = 17
+local TRACK_HEIGHT = 4
 
 -------------------------------------------------------------------------------
 -- Utility: round to step
@@ -71,8 +71,8 @@ end
 local function CreateFillTexture(slider)
     local fill = slider:CreateTexture(nil, "ARTWORK")
     fill:SetColorTexture(WC.SLIDER_FILL[1], WC.SLIDER_FILL[2], WC.SLIDER_FILL[3], WC.SLIDER_FILL[4])
-    fill:SetPoint("TOPLEFT", slider, "TOPLEFT", 1, -1)
-    fill:SetPoint("BOTTOMLEFT", slider, "BOTTOMLEFT", 1, 1)
+    fill:SetPoint("LEFT", slider, "LEFT", 1, 0)
+    fill:SetHeight(TRACK_HEIGHT)
     fill:SetWidth(0.001)
     fill:Hide()
     slider._fill = fill
@@ -83,22 +83,22 @@ end
 -------------------------------------------------------------------------------
 
 local function CreateCustomSlider(parent)
-    local slider = CreateFrame("Slider", nil, parent, "BackdropTemplate")
+    local slider = CreateFrame("Slider", nil, parent)
     slider:SetHeight(SLIDER_HEIGHT)
-    slider:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
-        edgeSize = 1,
-    })
-    slider:SetBackdropColor(WC.SLIDER_TRACK[1], WC.SLIDER_TRACK[2], WC.SLIDER_TRACK[3], WC.SLIDER_TRACK[4])
-    slider:SetBackdropBorderColor(
-        WC.SECTION_BORDER[1], WC.SECTION_BORDER[2], WC.SECTION_BORDER[3], WC.SECTION_BORDER[4]
-    )
+
+    -- The visible track is slim; retain the full-height drag target.
+    local track = slider:CreateTexture(nil, "BACKGROUND")
+    track:SetPoint("LEFT", slider, "LEFT", 1, 0)
+    track:SetPoint("RIGHT", slider, "RIGHT", -1, 0)
+    track:SetHeight(TRACK_HEIGHT)
+    track:SetColorTexture(WC.SLIDER_TRACK[1], WC.SLIDER_TRACK[2], WC.SLIDER_TRACK[3], WC.SLIDER_TRACK[4])
+    slider._track = track
 
     local thumb = slider:CreateTexture(nil, "OVERLAY")
     thumb:SetColorTexture(WC.SLIDER_THUMB[1], WC.SLIDER_THUMB[2], WC.SLIDER_THUMB[3], WC.SLIDER_THUMB[4])
-    thumb:SetSize(10, SLIDER_HEIGHT)
+    thumb:SetSize(8, 13)
     slider:SetThumbTexture(thumb)
+    slider._thumb = thumb
 
     CreateFillTexture(slider)
 
@@ -114,6 +114,8 @@ function ns.Widgets.CreateSlider(parent, opts)
     frame:SetHeight(FRAME_HEIGHT)
 
     local disabled = false
+    local editHovered = false
+    local editFocused = false
     local minVal = opts.min or 0
     local maxVal = opts.max or 100
     local step = opts.step or 1
@@ -155,31 +157,62 @@ function ns.Widgets.CreateSlider(parent, opts)
     local editBox = CreateFrame("EditBox", nil, frame, "BackdropTemplate")
     editBox:SetSize(EDITBOX_WIDTH, 20)
     editBox:SetPoint("LEFT", slider, "RIGHT", 8, 0)
-    editBox:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
-        edgeSize = 1,
-    })
-    editBox:SetBackdropColor(WC.WIDGET_BG[1], WC.WIDGET_BG[2], WC.WIDGET_BG[3], WC.WIDGET_BG[4])
-    editBox:SetBackdropBorderColor(
-        WC.SECTION_BORDER[1], WC.SECTION_BORDER[2], WC.SECTION_BORDER[3], WC.SECTION_BORDER[4]
-    )
+    WC.ApplyBackdrop(editBox, WC.INPUT_BG, WC.CONTROL_BORDER)
     editBox:SetFont(FONT_PATH, VALUE_FONT_SIZE, "")
     editBox:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
     editBox:SetJustifyH("CENTER")
     editBox:SetAutoFocus(false)
     editBox:SetMaxLetters(10)
 
-    -- Hover highlight on editBox
-    editBox:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(
-            WC.WIDGET_BG_HOVER[1], WC.WIDGET_BG_HOVER[2],
-            WC.WIDGET_BG_HOVER[3], WC.WIDGET_BG_HOVER[4]
+    local function UpdateEditBorder()
+        local border = WC.CONTROL_BORDER
+        if not disabled then
+            if editFocused then
+                border = WC.ACCENT_COLOR
+            elseif editHovered then
+                border = WC.BORDER_HOVER
+            end
+        end
+        editBox:SetBackdropBorderColor(border[1], border[2], border[3], border[4])
+    end
+
+    editBox:SetScript("OnEnter", function()
+        editHovered = true
+        UpdateEditBorder()
+    end)
+    editBox:SetScript("OnLeave", function()
+        editHovered = false
+        UpdateEditBorder()
+    end)
+    editBox:SetScript("OnEditFocusGained", function(self)
+        if disabled then
+            self:ClearFocus()
+            return
+        end
+        editFocused = true
+        UpdateEditBorder()
+    end)
+    editBox:SetScript("OnEditFocusLost", function()
+        editFocused = false
+        UpdateEditBorder()
+    end)
+    editBox:SetScript("OnHide", function()
+        editHovered = false
+        editFocused = false
+        UpdateEditBorder()
+    end)
+
+    slider:SetScript("OnEnter", function()
+        if disabled then return end
+        slider._thumb:SetColorTexture(WC.ACCENT_COLOR[1], WC.ACCENT_COLOR[2], WC.ACCENT_COLOR[3], 1)
+    end)
+    local function ResetThumb()
+        slider._thumb:SetColorTexture(
+            WC.SLIDER_THUMB[1], WC.SLIDER_THUMB[2], WC.SLIDER_THUMB[3], WC.SLIDER_THUMB[4]
         )
-    end)
-    editBox:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(WC.WIDGET_BG[1], WC.WIDGET_BG[2], WC.WIDGET_BG[3], WC.WIDGET_BG[4])
-    end)
+    end
+    slider:SetScript("OnLeave", ResetThumb)
+    slider:SetScript("OnHide", ResetThumb)
 
     -- Suppress tab key to avoid focus issues
     editBox:SetScript("OnTabPressed", function(self)
@@ -287,6 +320,13 @@ function ns.Widgets.CreateSlider(parent, opts)
 
     function frame.SetDisabled(_, state)
         disabled = state
+        editHovered = false
+        if disabled then
+            editFocused = false
+            editBox:ClearFocus()
+        end
+        UpdateEditBorder()
+        ResetThumb()
         slider:EnableMouse(not disabled)
         editBox:EnableMouse(not disabled)
         if disabled then

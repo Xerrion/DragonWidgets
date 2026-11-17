@@ -186,13 +186,12 @@ describe("TextInput", function()
                 key = "testKey",
             })
 
-            -- ClearFocus is a no-op stub; verify it does not error
+            widget._editBox:SetFocus()
             widget._editBox:SetText("value")
             local onEnterPressed = widget._editBox._scripts["OnEnterPressed"]
+            onEnterPressed(widget._editBox)
 
-            assert.has_no.errors(function()
-                onEnterPressed(widget._editBox)
-            end)
+            assert.is_false(widget._editBox:HasFocus())
         end)
     end)
 

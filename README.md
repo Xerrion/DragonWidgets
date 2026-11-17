@@ -13,6 +13,8 @@
 
 DragonWidgets is a pure widget library providing reusable UI components for the Dragon\* family of WoW addons. It is embedded as a git submodule into each consumer addon's `_Options` LoadOnDemand companion.
 
+The widgets use layered charcoal surfaces, locale-aware sans-serif text, and teal accents for selections and focus. Buttons, inputs, tabs, and scroll controls share the same visual states. See the [appearance design notes](docs/appearance.md) for compatibility decisions and verification.
+
 ## 🧩 Widgets
 
 | Widget | Description |
@@ -20,7 +22,7 @@ DragonWidgets is a pure widget library providing reusable UI components for the 
 | Panel | BackdropTemplate container frame with title bar and close button |
 | ScrollFrame | ScrollFrame with child and scrollbar slider for scrollable content areas |
 | TabGroup | Horizontal tab bar with lazy content creation and scroll frames |
-| Header | Sub-header with gold text and subtle horizontal separator |
+| Header | Neutral sub-header with a subtle horizontal separator |
 | Description | Word-wrapped gray description text block |
 | Section | Card panel container that groups related settings with a header |
 | Toggle | Checkbox toggle with label and optional tooltip |

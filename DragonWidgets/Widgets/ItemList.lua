@@ -24,8 +24,8 @@ local string_format = string.format
 -------------------------------------------------------------------------------
 
 local FONT_PATH = WC.FONT_PATH
-local FONT_SIZE = 12
-local LABEL_FONT_SIZE = 11
+local FONT_SIZE = WC.FONT_SIZE
+local LABEL_FONT_SIZE = WC.FONT_SIZE_SMALL
 local SLOT_SIZE = 36
 local SLOT_SPACING = 4
 local SLOTS_PER_ROW = 6
@@ -34,8 +34,8 @@ local GRAY_COLOR = WC.GRAY_COLOR
 local HEADER_HEIGHT = 18
 local COUNT_HEIGHT = 16
 local WHITE8x8 = WC.WHITE8x8
-local DASHED_BORDER_COLOR = { 0.6, 0.6, 0.6, 0.5 }
-local ADD_SLOT_BG = { 0.08, 0.08, 0.08, 0.6 }
+local ADD_BORDER_COLOR = WC.CONTROL_BORDER
+local ADD_SLOT_BG = WC.INPUT_BG
 
 -------------------------------------------------------------------------------
 -- Count items in a set table
@@ -92,13 +92,13 @@ local function CreateAddSlot(parent, frame, opts)
     slot:SetBackdrop({ bgFile = WHITE8x8, edgeFile = WHITE8x8, edgeSize = 1 })
     slot:SetBackdropColor(ADD_SLOT_BG[1], ADD_SLOT_BG[2], ADD_SLOT_BG[3], ADD_SLOT_BG[4])
     slot:SetBackdropBorderColor(
-        DASHED_BORDER_COLOR[1], DASHED_BORDER_COLOR[2],
-        DASHED_BORDER_COLOR[3], DASHED_BORDER_COLOR[4]
+        ADD_BORDER_COLOR[1], ADD_BORDER_COLOR[2],
+        ADD_BORDER_COLOR[3], ADD_BORDER_COLOR[4]
     )
 
     local plusText = slot:CreateFontString(nil, "OVERLAY")
-    plusText:SetFont(FONT_PATH, 18, "OUTLINE")
-    plusText:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
+    plusText:SetFont(FONT_PATH, 18, "")
+    plusText:SetTextColor(WC.ACCENT_COLOR[1], WC.ACCENT_COLOR[2], WC.ACCENT_COLOR[3])
     plusText:SetPoint("CENTER", slot, "CENTER", 0, 0)
     plusText:SetText("+")
 

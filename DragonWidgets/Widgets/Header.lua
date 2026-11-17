@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Header.lua
--- Sub-header with gold text and subtle horizontal separator
+-- Sub-header with bright text and a subtle horizontal separator
 --
 -- Supported versions: Retail, MoP Classic, TBC Anniversary, Cata, Classic
 -------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ local CreateFrame = CreateFrame
 -------------------------------------------------------------------------------
 
 local FONT_PATH = WC.FONT_PATH
-local FONT_SIZE = 12
+local FONT_SIZE = WC.FONT_SIZE
 local SEPARATOR_HEIGHT = 1
 local FRAME_HEIGHT = 20
 
@@ -31,21 +31,24 @@ function ns.Widgets.CreateHeader(parent, text)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetHeight(FRAME_HEIGHT)
 
-    -- Gold text with left padding, vertically centered
+    -- Bright text with left padding, vertically centered
     local fontString = frame:CreateFontString(nil, "OVERLAY")
-    fontString:SetFont(FONT_PATH, FONT_SIZE)
-    fontString:SetTextColor(WC.GOLD_COLOR[1], WC.GOLD_COLOR[2], WC.GOLD_COLOR[3])
+    fontString:SetFont(FONT_PATH, FONT_SIZE, "")
+    fontString:SetTextColor(WC.TEXT_COLOR[1], WC.TEXT_COLOR[2], WC.TEXT_COLOR[3])
     fontString:SetPoint("LEFT", frame, "LEFT", 4, 0)
     fontString:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
     fontString:SetJustifyH("LEFT")
+    fontString:SetWordWrap(false)
     fontString:SetText(text)
 
-    -- Subtle gold separator below text
+    -- Quiet separator below text
     local separator = frame:CreateTexture(nil, "ARTWORK")
     separator:SetHeight(SEPARATOR_HEIGHT)
     separator:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
     separator:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    separator:SetColorTexture(WC.GOLD_COLOR[1], WC.GOLD_COLOR[2], WC.GOLD_COLOR[3], 0.2)
+    separator:SetColorTexture(
+        WC.SECTION_BORDER[1], WC.SECTION_BORDER[2], WC.SECTION_BORDER[3], WC.SECTION_BORDER[4]
+    )
 
     frame._fontString = fontString
     frame._separator = separator

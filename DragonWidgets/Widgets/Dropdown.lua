@@ -37,15 +37,15 @@ local MAX_LIST_HEIGHT = 200
 local FRAME_HEIGHT = 42
 
 local BG_COLOR = WC.WIDGET_BG
-local BORDER_COLOR = WC.SECTION_BORDER
+local BORDER_COLOR = WC.CONTROL_BORDER
 local LIST_BG_COLOR = WC.DROPDOWN_LIST_BG
-local HIGHLIGHT_COLOR = { 1, 1, 1, 0.12 }
-local SELECTED_COLOR = { 1, 0.82, 0, 0.20 }
+local HIGHLIGHT_COLOR = WC.ACCENT_SOFT
+local SELECTED_COLOR = WC.ACCENT_SOFT
 
 local PREVIEW_WIDTH = 40
 local PREVIEW_HEIGHT = 14
 local PREVIEW_INSET = 6
-local PREVIEW_TINT = { 1, 0.82, 0, 0.9 }
+local PREVIEW_TINT = WC.ACCENT_COLOR
 local TEXT_OFFSET_WITH_PREVIEW = 52
 
 -------------------------------------------------------------------------------
@@ -55,15 +55,34 @@ local TEXT_OFFSET_WITH_PREVIEW = 52
 local activeDropdown = nil
 local _sharedOverlay = nil
 
+local function UpdateButtonStyle(dropdown)
+    local isOpen = activeDropdown == dropdown
+    local bg = WC.WIDGET_BG
+    local border = BORDER_COLOR
+    if not dropdown._disabled then
+        if isOpen then
+            border = WC.ACCENT_COLOR
+        elseif dropdown._hovered then
+            border = WC.BORDER_HOVER
+        end
+        if isOpen or dropdown._hovered then bg = WC.WIDGET_BG_HOVER end
+    end
+    dropdown._button:SetBackdropColor(bg[1], bg[2], bg[3], bg[4])
+    dropdown._button:SetBackdropBorderColor(border[1], border[2], border[3], border[4])
+    dropdown._arrow:SetText(isOpen and "^" or "v")
+end
+
 -------------------------------------------------------------------------------
 -- Close the currently open dropdown
 -------------------------------------------------------------------------------
 
 local function CloseActiveDropdown()
     if not activeDropdown then return end
-    activeDropdown._listFrame:Hide()
+    local dropdown = activeDropdown
+    dropdown._listFrame:Hide()
     if _sharedOverlay then _sharedOverlay:Hide() end
     activeDropdown = nil
+    UpdateButtonStyle(dropdown)
 end
 
 -------------------------------------------------------------------------------
@@ -231,6 +250,14 @@ local function BuildListItems(dropdown, opts)
             )
             btn._selected:Hide()
 
+            -- A shape cue makes the selection recognizable without color alone.
+            btn._selectionMark = btn:CreateTexture(nil, "ARTWORK")
+            btn._selectionMark:SetSize(2, ITEM_HEIGHT - 8)
+            btn._selectionMark:SetPoint("LEFT", btn, "LEFT", 1, 0)
+            btn._selectionMark:SetColorTexture(
+                WC.ACCENT_COLOR[1], WC.ACCENT_COLOR[2], WC.ACCENT_COLOR[3], 1
+            )
+
             dropdown._itemButtons[i] = btn
         end
 
@@ -240,6 +267,9 @@ local function BuildListItems(dropdown, opts)
         -- Highlight current selection
         local current = opts.get and opts.get() or nil
         btn._selected:SetShown(entry.value == current)
+        btn._selectionMark:SetShown(entry.value == current)
+        local textColor = entry.value == current and WC.ACCENT_COLOR or WHITE_COLOR
+        btn._text:SetTextColor(textColor[1], textColor[2], textColor[3])
 
         -- Apply media preview
         if lsm and mediaType ~= "font" then
@@ -292,6 +322,7 @@ local function ToggleList(dropdown, opts)
     listFrame:Show()
     _sharedOverlay:Show()
     activeDropdown = dropdown
+    UpdateButtonStyle(dropdown)
 end
 
 -------------------------------------------------------------------------------
@@ -317,8 +348,8 @@ end
 
 local function CreateListFrame(dropdown)
     local listFrame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-    listFrame:SetPoint("TOPLEFT", dropdown._button, "BOTTOMLEFT", 0, -1)
-    listFrame:SetPoint("TOPRIGHT", dropdown._button, "BOTTOMRIGHT", 0, -1)
+    listFrame:SetPoint("TOPLEFT", dropdown._button, "BOTTOMLEFT", 0, -4)
+    listFrame:SetPoint("TOPRIGHT", dropdown._button, "BOTTOMRIGHT", 0, -4)
     listFrame:SetFrameStrata("FULLSCREEN")
     listFrame:SetFrameLevel(200)
     listFrame:SetBackdrop({ bgFile = WHITE8x8, edgeFile = WHITE8x8, edgeSize = 1 })
@@ -376,6 +407,7 @@ function ns.Widgets.CreateDropdown(parent, opts)
     arrow:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
     arrow:SetPoint("RIGHT", button, "RIGHT", -6, 0)
     arrow:SetText("v")
+    frame._arrow = arrow
 
     -- Ensure shared overlay exists
     GetOrCreateOverlay()
@@ -388,12 +420,14 @@ function ns.Widgets.CreateDropdown(parent, opts)
 
     -- When the dropdown hides (e.g. parent scroll frame hides), clean up orphaned UIParent children
     frame:SetScript("OnHide", function()
+        frame._hovered = false
         if activeDropdown == frame then
             CloseActiveDropdown()
         else
             frame._listFrame:Hide()
             if _sharedOverlay then _sharedOverlay:Hide() end
         end
+        UpdateButtonStyle(frame)
     end)
 
     -- Click toggles dropdown
@@ -405,13 +439,12 @@ function ns.Widgets.CreateDropdown(parent, opts)
     -- Hover highlight on main button
     button:SetScript("OnEnter", function()
         if disabled then return end
-        button:SetBackdropColor(
-            WC.WIDGET_BG_HOVER[1], WC.WIDGET_BG_HOVER[2],
-            WC.WIDGET_BG_HOVER[3], WC.WIDGET_BG_HOVER[4]
-        )
+        frame._hovered = true
+        UpdateButtonStyle(frame)
     end)
     button:SetScript("OnLeave", function()
-        button:SetBackdropColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], BG_COLOR[4])
+        frame._hovered = false
+        UpdateButtonStyle(frame)
     end)
 
     -- Initialize selected text
@@ -434,7 +467,8 @@ function ns.Widgets.CreateDropdown(parent, opts)
 
     function frame.SetDisabled(_, state)
         disabled = state
-        button:SetBackdropColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], BG_COLOR[4])
+        frame._disabled = state
+        frame._hovered = false
         if disabled then
             label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
             selectedText:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
@@ -447,6 +481,7 @@ function ns.Widgets.CreateDropdown(parent, opts)
             arrow:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
             button:SetAlpha(1)
         end
+        UpdateButtonStyle(frame)
     end
 
     function frame.Refresh(_)

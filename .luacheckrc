@@ -46,6 +46,8 @@ files["DragonWidgets/"] = {
         "GetItemInfo",
         "C_Item",
         "C_Timer",
+        "ChatFontSmall",
+        "STANDARD_TEXT_FONT",
     },
 }
 

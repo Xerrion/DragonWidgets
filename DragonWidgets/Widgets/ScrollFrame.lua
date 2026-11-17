@@ -21,7 +21,6 @@ local math_max = math.max
 
 local SCROLLBAR_WIDTH = 14
 local SCROLL_STEP = 20
-local WHITE8x8 = WC.WHITE8x8
 
 -------------------------------------------------------------------------------
 -- Scrollbar value changed handler (shared, avoids per-instance closures)
@@ -95,14 +94,47 @@ function ns.Widgets.CreateScrollFrame(parent)
     bar:SetMinMaxValues(0, 0)
     bar:SetValue(0)
     bar:SetValueStep(SCROLL_STEP)
-    bar:SetBackdrop({ bgFile = WHITE8x8 })
-    bar:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
+
+    -- Keep the generous hit area while drawing a quiet, slim rail.
+    local track = bar:CreateTexture(nil, "BACKGROUND")
+    track:SetWidth(2)
+    track:SetPoint("TOP", bar, "TOP", 0, 0)
+    track:SetPoint("BOTTOM", bar, "BOTTOM", 0, 0)
+    track:SetColorTexture(WC.SLIDER_TRACK[1], WC.SLIDER_TRACK[2], WC.SLIDER_TRACK[3], 1)
 
     -- Thumb texture
     local thumb = bar:CreateTexture(nil, "OVERLAY")
-    thumb:SetColorTexture(0.4, 0.4, 0.4, 0.8)
-    thumb:SetSize(SCROLLBAR_WIDTH - 2, 30)
+    thumb:SetColorTexture(WC.SCROLLBAR_THUMB[1], WC.SCROLLBAR_THUMB[2], WC.SCROLLBAR_THUMB[3], 1)
+    thumb:SetSize(6, 30)
     bar:SetThumbTexture(thumb)
+
+    local hovered = false
+    local pressed = false
+    local function UpdateThumb()
+        local color = pressed and WC.ACCENT_COLOR or (hovered and WC.BORDER_HOVER or WC.SCROLLBAR_THUMB)
+        thumb:SetColorTexture(color[1], color[2], color[3], 1)
+    end
+    bar:SetScript("OnEnter", function()
+        hovered = true
+        UpdateThumb()
+    end)
+    bar:SetScript("OnLeave", function()
+        hovered = false
+        UpdateThumb()
+    end)
+    bar:SetScript("OnMouseDown", function()
+        pressed = true
+        UpdateThumb()
+    end)
+    bar:SetScript("OnMouseUp", function()
+        pressed = false
+        UpdateThumb()
+    end)
+    bar:SetScript("OnHide", function()
+        hovered = false
+        pressed = false
+        UpdateThumb()
+    end)
 
     -- Cross-reference for handler
     bar._scrollFrame = sf
