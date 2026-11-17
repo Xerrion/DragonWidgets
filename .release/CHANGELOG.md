@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/Xerrion/DragonWidgets/compare/0.2.0...0.3.0) (2026-11-17)
+
+
+### Features
+
+* add sidebar settings layout and pinned preview hosts ([#13](https://github.com/Xerrion/DragonWidgets/issues/13)) ([fc3b240](https://github.com/Xerrion/DragonWidgets/commit/fc3b240d02b5fd23d9aad3f50ba7a350a8e21dcb))
+
+
+### Bug Fixes
+
+* honor declared options page order ([#15](https://github.com/Xerrion/DragonWidgets/issues/15)) ([2387e87](https://github.com/Xerrion/DragonWidgets/commit/2387e87717049fa0808b82967aae044b553bbb97))
+
 ## [0.2.0](https://github.com/Xerrion/DragonWidgets/compare/0.1.0...0.2.0) (2026-11-17)
 
 
