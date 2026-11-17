@@ -7,6 +7,7 @@ describe("options panel lifecycle", function()
         ns = mock.Reload()
         assert(loadfile("DragonWidgets/LayoutConstants.lua"))()
         mock.LoadWidget("Panel.lua")
+        mock.LoadWidget("Section.lua")
         mock.LoadWidget("ScrollFrame.lua")
         mock.LoadWidget("TabGroup.lua")
         mock.LoadWidget("Toggle.lua")
@@ -61,18 +62,42 @@ describe("options panel lifecycle", function()
         callback(host, 1 / 60)
     end
 
-    it("retains horizontal navigation and uncollected content by default", function()
+    it("opens the shared sidebar and compact layout by default", function()
         local result, stats = CreatePanel()
         local group = result.tabGroup
-        local tabBar = group._children[1]
-        assert.are.equal(800, result.panel:GetWidth())
-        assert.are.equal(600, result.panel:GetHeight())
-        assert.are.equal(28, tabBar:GetHeight())
+        assert.are.equal(1080, result.panel:GetWidth())
+        assert.are.equal(720, result.panel:GetHeight())
+        assert.are.equal(34, group._tabButtons.z:GetHeight())
+        assert.are.equal(-40, group._points[1].y)
         assert.are.equal("z", group:GetSelectedTab())
         assert.are.same({ z = 1 }, stats.created)
         assert.is_nil(group.previewHost)
-        assert.is_nil(group._contentFrames.z.scrollChild._settingsLayout)
+        assert.is_not_nil(group._contentFrames.z.scrollChild._settingsLayout)
         assert.is_false(result.panel:IsShown())
+
+        UIParent:SetSize(1024, 700)
+        result.Open()
+        assert.are.equal(992, result.panel:GetWidth())
+        assert.are.equal(668, result.panel:GetHeight())
+    end)
+
+    it("keeps the legacy size with explicit horizontal navigation", function()
+        local result = CreatePanel({ navigation = "horizontal" })
+        local group = result.tabGroup
+        assert.are.equal(800, result.panel:GetWidth())
+        assert.are.equal(600, result.panel:GetHeight())
+        assert.are.equal(28, group._tabButtons.z:GetHeight())
+        assert.are.equal(-32, group._points[1].y)
+        assert.is_not_nil(group._contentFrames.z.scrollChild._settingsLayout)
+    end)
+
+    it("preserves manual page layout when settings collection is explicitly disabled", function()
+        local result = CreatePanel({ settingsLayout = false })
+        local group = result.tabGroup
+        local content = group._contentFrames.z.scrollChild
+        assert.are.equal(34, group._tabButtons.z:GetHeight())
+        assert.is_nil(content._settingsLayout)
+        assert.are.equal(120, content:GetHeight())
     end)
 
     it("keeps sidebar declaration order and creates each page only on its first visit", function()
@@ -96,6 +121,98 @@ describe("options panel lifecycle", function()
         group:SelectTab("z")
         assert.are.same({ z = 1, a = 1 }, stats.created)
         assert.are.same({ z = 2, a = 1 }, stats.refreshed)
+    end)
+
+    it("lazily builds ordered section cards and reflows and refreshes their controls", function()
+        local enabled = false
+        local toggle, slider
+        local result = ns.CreateOptionsPanel({
+            name = "DragonWidgetsSectionCardsTest",
+            tabs = {
+                { id = "general", label = "General" },
+                {
+                    id = "appearance",
+                    label = "Appearance",
+                    sections = {
+                        {
+                            title = "Display",
+                            createFunc = function(content)
+                                toggle = ns.Widgets.CreateToggle(content, { get = function() return enabled end })
+                                slider = ns.Widgets.CreateSlider(content, {})
+                                return { toggle, slider }
+                            end,
+                        },
+                        {
+                            title = "Behavior",
+                            createFunc = function(content)
+                                return { ns.Widgets.CreateToggle(content, {}) }
+                            end,
+                        },
+                    },
+                },
+            },
+        })
+        assert.is_nil(toggle)
+        result.tabGroup:SelectTab("appearance")
+        local page = result.tabGroup._contentFrames.appearance.scrollChild
+        page:SetWidth(900)
+        local sections = page._settingsLayout.widgets
+        local first, second = sections[1], sections[2]
+        assert.are.equal(2, #sections)
+        assert.are.equal("Display", first._headerLabel:GetText())
+        assert.are.equal("Behavior", second._headerLabel:GetText())
+        assert.are.equal(first.content, toggle._parent)
+        assert.are.equal(first.content, slider._parent)
+        assert.are.equal(toggle, first.content._settingsLayout.widgets[1])
+        assert.are.equal(slider, first.content._settingsLayout.widgets[2])
+        assert.are.equal(toggle._points[1].y, slider._points[1].y)
+        assert.is_true(toggle._points[1].x < slider._points[1].x)
+
+        local wideHeight = page:GetHeight()
+        page:SetWidth(620)
+        assert.are.equal(toggle._points[1].x, slider._points[1].x)
+        assert.is_true(toggle._points[1].y > slider._points[1].y)
+        assert.is_true(page:GetHeight() > wideHeight)
+
+        assert.is_false(toggle:GetValue())
+        enabled = true
+        result.RefreshVisibleWidgets()
+        assert.is_true(toggle:GetValue())
+        result.tabGroup:SelectTab("general")
+        result.tabGroup:SelectTab("appearance")
+        assert.are.equal(first, page._settingsLayout.widgets[1])
+        assert.are.equal(toggle, first.content._settingsLayout.widgets[1])
+    end)
+
+    it("stacks declarative section cards with manual anchors when collection is disabled", function()
+        local function CreateControls(content)
+            return { ns.Widgets.CreateToggle(content, {}), ns.Widgets.CreateToggle(content, {}) }
+        end
+        local result = ns.CreateOptionsPanel({
+            name = "DragonWidgetsManualSectionCardsTest",
+            settingsLayout = false,
+            tabs = {
+                {
+                    id = "general",
+                    label = "General",
+                    sections = {
+                        { title = "Display", createFunc = CreateControls },
+                        { title = "Behavior", createFunc = CreateControls },
+                    },
+                },
+            },
+        })
+        local page = result.tabGroup._contentFrames.general.scrollChild
+        local first, second = page._children[1], page._children[2]
+        local firstControl, secondControl = first.content._children[1], first.content._children[2]
+        assert.is_nil(page._settingsLayout)
+        assert.is_nil(first.content._settingsLayout)
+        assert.are.equal(first.content, firstControl._points[1].relativeTo)
+        assert.are.equal(first.content, secondControl._points[1].relativeTo)
+        assert.is_true(firstControl._points[1].y - firstControl:GetHeight() > secondControl._points[1].y)
+        assert.is_true(first.content:GetHeight() > -secondControl._points[1].y + secondControl:GetHeight())
+        assert.is_true(first._points[1].y - first:GetHeight() > second._points[1].y)
+        assert.is_true(page:GetHeight() > -second._points[1].y + second:GetHeight())
     end)
 
     it("keeps the preview outside every page's scroll content", function()

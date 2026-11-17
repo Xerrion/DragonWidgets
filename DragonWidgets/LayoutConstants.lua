@@ -35,7 +35,7 @@ local LC = {
 }
 
 -------------------------------------------------------------------------------
--- Opt-in settings layout. Legacy callers keep their original anchor math.
+-- Settings layout collection. Anchors also support manually laid out panels.
 -------------------------------------------------------------------------------
 
 local ReflowSettingsLayout

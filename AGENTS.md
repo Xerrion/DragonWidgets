@@ -30,10 +30,10 @@ DragonWidgets is a pure widget library. No Ace3, no SavedVariables, no slash com
 | `Widgets/Dropdown.lua`          | Dropdown menu with label and tooltip             |
 | `Widgets/ColorPicker.lua`       | Color swatch that opens the system color picker  |
 | `Widgets/Button.lua`            | Clickable button with label                      |
-| `Widgets/Header.lua`            | Section header label                             |
+| `Widgets/Header.lua`            | Inline heading with separator                    |
 | `Widgets/Description.lua`       | Multi-line description text block                |
 | `Widgets/Panel.lua`             | Options panel frame                              |
-| `Widgets/Section.lua`           | Collapsible section container                    |
+| `Widgets/Section.lua`           | Bordered card for related settings               |
 | `Widgets/ScrollFrame.lua`       | Scrollable content frame                         |
 | `Widgets/TabGroup.lua`          | Tab group for switching between option pages     |
 | `Widgets/ItemList.lua`          | List widget for item entries                     |
@@ -48,6 +48,10 @@ DragonWidgets uses a single global namespace table (not the `local ADDON_NAME, n
 local ns = DragonWidgetsNS
 local WC = ns.WidgetConstants
 ```
+
+### Options panel defaults
+
+Use `DragonWidgetsNS.CreateOptionsPanel` and declare settings groups in each tab's `sections` array. For custom tab builders, use `Widgets.CreateSection` for each group. Keep the shared sidebar and responsive layout defaults for Dragon addon settings. See the [options layout guide](docs/options-layout.md).
 
 ### Event Bus
 
