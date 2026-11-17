@@ -14,8 +14,10 @@ local WC = ns.WidgetConstants
 
 local CreateFrame = CreateFrame
 local floor = math.floor
+local huge = math.huge
 local sort = table.sort
 local pairs, ipairs = pairs, ipairs
+local type = type
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -24,6 +26,25 @@ local pairs, ipairs = pairs, ipairs
 local TAB_HEIGHT = 28
 local TAB_MIN_WIDTH = 60
 local TAB_PADDING = 16
+
+-- Lua's table.sort is not stable. Decorate a private copy so equal/unspecified
+-- orders retain their declaration order without changing the consumer's array.
+local function OrderedTabs(tabs)
+    local ordered = {}
+    for i, definition in ipairs(tabs) do
+        ordered[i] = {
+            definition = definition,
+            order = type(definition.order) == "number" and definition.order or huge,
+            index = i,
+        }
+    end
+    sort(ordered, function(a, b)
+        if a.order == b.order then return a.index < b.index end
+        return a.order < b.order
+    end)
+    for i = 1, #ordered do ordered[i] = ordered[i].definition end
+    return ordered
+end
 
 -------------------------------------------------------------------------------
 -- Style a tab button as active or inactive
@@ -132,6 +153,7 @@ end
 
 function ns.Widgets.CreateTabGroup(parent, tabs, opts)
     opts = opts or {}
+    tabs = OrderedTabs(tabs)
     local sidebar = opts.navigation == "sidebar"
     local tabGroup = CreateFrame("Frame", nil, parent)
 

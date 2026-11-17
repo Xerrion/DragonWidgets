@@ -13,7 +13,7 @@ The goal is to make related settings easy to compare and show their effect witho
 | Every existing consumer can adopt the new geometry without changes. | Unknown | Some tabs anchor actions directly to other controls. The layout remains opt-in; the two consumer addons explicitly register those actions with the layout collector. |
 | Mock frame dimensions reproduce all client fonts and UI scales. | Unknown | Tests verify anchors, resizing, event flow and isolation. Real-client text fitting and rendering still require an in-game check. |
 
-The widget value API, lazy tab creation, settings order, tooltips, dropdown and colour-picker behaviour remain contracts. The deliberate changes are navigation position, window size, compact control placement, responsive pairing and preview visibility. The legacy horizontal tab layout and widget geometry remain the default for other consumers.
+The widget value API, lazy tab creation, declared control grouping, tooltips, dropdown and colour-picker behaviour remain contracts. The deliberate changes are navigation position, page ordering, window size, compact control placement, responsive pairing and preview visibility. The legacy horizontal tab layout and widget geometry remain the default for other consumers.
 
 ## Consumer API
 
@@ -44,7 +44,11 @@ The preview host is a sibling of the scrolling settings wrappers. Refresh reques
 
 ## Layout rules
 
+Pages honor their numeric `order` value, with lower values first. Equal values retain declaration order; pages without a numeric order follow the ordered pages in their original order. Navigation, initial selection and lazy content creation use the same private ordered copy. Caller arrays and tab definitions are not modified. Previously, `order` was ignored and page positions depended on TOC file order.
+
 The panel begins and ends layout collection around each lazy `createFunc`. Existing `LayoutConstants.AnchorWidget` and `AnchorSection` calls register controls in declaration order. Sections collect their own children recursively. Calling the same anchor helper twice does not duplicate a control.
+
+Controls stay in their declared semantic groups. Their order is not sorted globally: paired fields, headings and dependent controls must remain together. Consumers arrange each page from layout and content to appearance and behaviour, with test or destructive actions at the end.
 
 - At least 640 logical pixels of usable content width gives two equal cells, separated by 24 pixels. Narrower content uses one cell.
 - Compact controls use 48-pixel rows. Labels can wrap within two lines. Inputs retain their original interaction behaviour.

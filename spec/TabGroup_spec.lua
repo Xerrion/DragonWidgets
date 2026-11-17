@@ -70,3 +70,49 @@ describe("TabGroup layout", function()
         assert.is_false(buttons[2]._activeBar:IsShown())
     end)
 end)
+
+describe("TabGroup declared page order", function()
+    for _, navigation in ipairs({ "tabs", "sidebar" }) do
+        it("uses stable order for " .. navigation .. " without mutating consumer definitions", function()
+            local ns = mock.Reload()
+            mock.LoadWidget("ScrollFrame.lua")
+            mock.LoadWidget("TabGroup.lua")
+            local created, selected = {}, {}
+            local tabs = {}
+            local declarations = {
+                { "extra", nil }, { "last", 30 }, { "first", 10 },
+                { "same", 10 }, { "extra2", nil },
+            }
+            for _, entry in ipairs(declarations) do
+                local id = entry[1]
+                tabs[#tabs + 1] = {
+                    id = id, label = id, order = entry[2],
+                    createFunc = function() created[id] = (created[id] or 0) + 1 end,
+                }
+            end
+            local originals = { unpack(tabs) }
+            local group = ns.Widgets.CreateTabGroup(CreateFrame("Frame"), tabs, {
+                navigation = navigation,
+                onSelect = function(id) selected[#selected + 1] = id end,
+            })
+
+            local expected = { "first", "same", "last", "extra", "extra2" }
+            for i, id in ipairs(expected) do
+                assert.are.equal(id, group._children[1]._children[i]._tabId)
+                assert.are.equal(i, group._tabButtons[id]._tabOrder)
+            end
+            for i, entry in ipairs(declarations) do
+                assert.are.equal(originals[i], tabs[i])
+                assert.are.equal(entry[1], tabs[i].id)
+                assert.are.equal(entry[2], tabs[i].order)
+            end
+            assert.are.equal("first", group:GetSelectedTab())
+            assert.are.same({ first = 1 }, created)
+
+            group:SelectTab("last")
+            group:SelectTab("first")
+            assert.are.same({ first = 1, last = 1 }, created)
+            assert.are.same({ "first", "last", "first" }, selected)
+        end)
+    end
+end)
