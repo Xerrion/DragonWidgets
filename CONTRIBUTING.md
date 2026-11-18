@@ -30,12 +30,11 @@ busted --verbose    # tests (also: mise run test)
 
 AI tools are fine to use. These rules apply when you do:
 
-1. **Disclose it.** Say in the PR description which tool you used and how much of the change it produced.
-2. **Review everything.** You must review, understand, and be able to explain every line you submit. Do not submit unreviewed agent output.
-3. **Run the checks.** Run `luacheck .` and `busted --verbose`, and test in-game. Never claim a check passed without running it.
-4. **Do not invent WoW API behaviour.** Verify against [warcraft.wiki.gg](https://warcraft.wiki.gg) and Blizzard's FrameXML source.
-5. **No spam.** Do not file bulk or drive-by AI-generated issues or PRs. Keep each PR to one scoped change, linked to an issue.
-6. **You own the licensing.** Do not paste code of unknown origin.
-7. **Agents follow [AGENTS.md](AGENTS.md).** They never push to `master`, never merge release-please PRs (`chore(master): release X.Y.Z`; the owner merges those), and do not touch secrets or workflow permissions without explicit approval.
+1. **Review everything.** You must review, understand, and be able to explain every line you submit. Do not submit unreviewed agent output.
+2. **Run the checks.** Run `luacheck .` and `busted --verbose`, and test in-game. Never claim a check passed without running it.
+3. **Do not invent WoW API behaviour.** Verify against [warcraft.wiki.gg](https://warcraft.wiki.gg) and Blizzard's FrameXML source.
+4. **No spam.** Do not file bulk or drive-by AI-generated issues or PRs. Keep each PR to one scoped change, linked to an issue.
+5. **You own the licensing.** Do not paste code of unknown origin.
+6. **Agents follow [AGENTS.md](AGENTS.md).** They never push to `master`, never merge release-please PRs (`chore(master): release X.Y.Z`; the owner merges those), and do not touch secrets or workflow permissions without explicit approval.
 
-Maintainers may close undisclosed or unreviewed AI-assisted PRs without review.
+Maintainers may close unreviewed AI-assisted PRs without review.
