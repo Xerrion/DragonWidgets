@@ -94,6 +94,28 @@ When adding a new widget file, it must be added to every consumer TOC that needs
 
 ---
 
+## AI Code of Conduct
+
+This section applies to AI coding agents working in this repository. Human contributors: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+1. **Disclose.** State in the PR description which tool produced the change and how much of it.
+2. **Keep a human in the loop.** A human must review, understand, and be able to explain every line you submit. Never submit unreviewed agent output.
+3. **Verify.** Run `luacheck .` and `busted --verbose` before submitting, and test in-game. Never claim a check passed without running it.
+4. **Do not fabricate.** Never invent WoW API behaviour. Verify against [warcraft.wiki.gg](https://warcraft.wiki.gg) and Blizzard's FrameXML source.
+5. **No spam.** Do not open bulk or drive-by AI-generated issues or PRs. One scoped change per PR, linked to an issue.
+6. **Licensing.** Contributors are responsible for licensing. Do not paste code of unknown origin.
+7. **Agent conduct.**
+   - Follow this file.
+   - Never push to `master`.
+   - Never merge release-please PRs (`chore(master): release X.Y.Z`). The owner merges those.
+   - Do not touch secrets or workflow permissions without explicit approval.
+
+PR titles must be conventional commits (`feat:`, `fix(scope):`, `chore:` ...). Squash merges use the PR title as the commit message, and release-please derives versions from it.
+
+Maintainers may close undisclosed or unreviewed AI-assisted PRs without review.
+
+---
+
 ## GitHub Projects
 
 - **DragonWidgets - Bugs**: project #8 (`C-Bug` issues)
