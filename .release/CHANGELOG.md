@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.1 (2026-11-18)
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
+## What's Changed
+### ⚙️ Other Changes
+* ci: register DragonWidgets package workflow by @Xerrion in https://github.com/Xerrion/DragonWidgets/pull/18
+* ci: run lint on pull_request instead of pull_request_target by @Xerrion in https://github.com/Xerrion/DragonWidgets/pull/19
+* docs: drop AI disclosure requirement by @Xerrion in https://github.com/Xerrion/DragonWidgets/pull/20
+* chore: use GitHub-generated release notes to credit contributors by @Xerrion in https://github.com/Xerrion/DragonWidgets/pull/21
+* ci: add PR labeler and unify release note categories by @Xerrion in https://github.com/Xerrion/DragonWidgets/pull/23
+* ci: use pull_request triggers and update action versions by @Xerrion in https://github.com/Xerrion/DragonWidgets/pull/24
+* ci: run the PR labeler on pull_request_target for fork PRs by @Xerrion in https://github.com/Xerrion/DragonWidgets/pull/25
+
+
+**Full Changelog**: https://github.com/Xerrion/DragonWidgets/compare/0.4.0...0.4.1
+
 ## [0.4.0](https://github.com/Xerrion/DragonWidgets/compare/0.3.0...0.4.0) (2026-11-17)
 
 
